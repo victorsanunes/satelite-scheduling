@@ -1,0 +1,18 @@
+Preemptividade para solicitaçõe na mesma janela
+	Se (final do atual < inicio da proxima -1 ) ou (inicio da atual > fim da proxima + 1) --> OK
+
+
+FOR a IN solicitacoes:
+	janela_atual = populacao[indice_individuo][a] 
+	FOR p = a + 1 IN solicitacoes: 	
+		IF janela_proxima == janela_atual:
+			//Preemptividade
+			IF fim_atual >= inicio_proxima + 1 and inicio_atual <= fim_proxima + 1:
+				aptidao[indice_individuo] = -1000.00
+		ELSE:
+			//Redundancia
+			IF fim_atual >= inicio_proxima + 1 and inicio_atual <= fim_proxima + 1:
+				aptidao[indice_individuo] = -1000.00
+			 
+		
+		 
