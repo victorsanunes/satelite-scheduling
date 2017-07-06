@@ -1,3 +1,2 @@
-gcc -c *.c
-gcc -o alg_gen *.o
+gcc *.c -o alg_gen -lm
 ./alg_gen
