@@ -33,6 +33,26 @@ int *read_ints(int *size){
     return dataset;
 }
 
+//Funcao que realizara a troca de variaveis
+void swapObjects(objectSummary *vetor, int a, int b){
+    objectSummary aux;
+    aux = vetor[a];
+    vetor[a] = vetor[b];
+    vetor[b] = aux;
+}
+
+
+void sortObjectsByFitnessValues(objectSummary *vetor, int size){
+    int i, j;
+
+    for (i = 0; i < size; i++) {
+        for(j = i + 1; j < size; j++){
+            if(vetor[i].fitnessValue > vetor[j].fitnessValue ){
+                swapObjects(vetor, i, j);
+            }
+        }
+    }
+}
 
 int main(){
 	int size, i, j, l;
@@ -41,7 +61,7 @@ int main(){
 	int window2_size = 31;
     double sum;
     double sum_aux = 0.0;
-
+    objectSummary *objects = malloc(MAX_OBJECTS * sizeof(objectSummary));
 	//Le os dados
 	int *dataset = read_ints(&size);
 
@@ -53,18 +73,18 @@ int main(){
 	// double quality2_values[window2_size];
     double *quality2_values = malloc(window2_size * sizeof(double));
 
-	printf("====SIGNAL QUALITY 1 ====\n\n");
+	// printf("====SIGNAL QUALITY 1 ====\n\n");
 	for(i = 0; i < window1_size; i++){
 		quality1[1][i] = signalQualityValue(window1_size, i);
 		quality1_values[i] = signalQualityValue(window1_size, i);
-		printf("%d: %.2f| ",i+1, quality1[1][i]);
+		// printf("%d: %.2f| ",i+1, quality1[1][i]);
 	}
 
-	printf("\n\n====SIGNAL QUALITY 2 ====\n\n");
+	// printf("\n\n====SIGNAL QUALITY 2 ====\n\n");
 	for(i = 0; i < window2_size; i++){
 		quality2[1][i] = signalQualityValue(window2_size, i);
 		quality2_values[i] = signalQualityValue(window2_size, i);
-		printf("%d: %.2f| ",i+1, quality2[1][i]);
+		// printf("%d: %.2f| ",i+1, quality2[1][i]);
 	}
 
 	//Popula a matrix de individuos
@@ -82,13 +102,44 @@ int main(){
                             quality1_values,
                             quality2_values);
 
-	printf("\n\n====FITNESS VALUES====\n\n");
-	printDoubleArray(fitnessValues, MAX_OBJECTS);
+	// printf("\n\n====FITNESS VALUES====\n\n");
+	// printDoubleArray(fitnessValues, MAX_OBJECTS);
+
+    //Preenche a estrutura para ordenar os valores de aptidao
+    for(i = 0; i < MAX_OBJECTS; i++){
+        //Calcula o indice do objeto na matriz de populacao
+        objects[i].index = i * LINES_PER_SINGLE_OBJECT;
+        objects[i].fitnessValue = fitnessValues[i];
+    }
+
+    sortObjectsByFitnessValues(objects, MAX_OBJECTS);
+
+    for(i = 0; i < MAX_OBJECTS; i++){
+        fitnessValues[i] = objects[i].fitnessValue;
+    }
 
     srand(1);
     for(i = 0; i < MAX_GENERATION; i++){
-        reproduction(MAX_OBJECTS, NEW_OBJECTS, fitnessValues, population, quality1_values, quality2_values);
+
+        reproduction(MAX_OBJECTS, NEW_OBJECTS, fitnessValues, population, quality1_values, quality2_values, objects);
+        sortObjectsByFitnessValues(objects, MAX_OBJECTS);
+        for(j = 0; j < MAX_OBJECTS; j++){
+            fitnessValues[j] = objects[j].fitnessValue;
+        }
+        // printf("\n\n====FITNESS VALUES====\n\n");
+    	// printDoubleArray(fitnessValues, MAX_OBJECTS);
     }
 
+    printf("\n\n====FITNESS VALUES====\n\n");
+    for(i = 0; i < MAX_OBJECTS; i++){
+        printf("%d: ", objects[i].index/LINES_PER_SINGLE_OBJECT);
+        printf("%.2f |", fitnessValues[i]);
+    }
+
+    imprimeContador();
+    printf("\n\n==== LAST POPULATION ====\n\n");
+    printIntMatrix(population, MAX_LINES, REQUESTS);
+
+    printStatistics();
 	return 0;
 }

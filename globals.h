@@ -24,7 +24,7 @@
 #define HORIZON_SIZE 50
 
 // Numero de geracoes maximas
-#define MAX_GENERATION 10
+#define MAX_GENERATION 1000
 
 // Numero de individuos gerados a cada geracao
 #define NEW_OBJECTS 5

@@ -28,3 +28,7 @@ matrix alocateMatrix(int lines, int columns);
 void initializeMatrix(matrix m, int lines, int columns);
 void printIntMatrix(matrix m, int lines, int columns);
 void fillMatrixWithValues(matrix m, int lines, int columns, int *dataset);
+void crossMatrixSegment(matrix A, int firstAColumn, int lastAColumn,
+                        matrix B, int firstBColumn, int lastBColumn,
+                        int lines, int columns);
+void copyMatrix(matrix origin, matrix destiny, int lines, int columns);
