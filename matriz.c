@@ -82,14 +82,14 @@ void crossMatrixSegment(matrix A, int firstAColumn, int lastAColumn,
 
     //Insere trecho de B em A
     for(iA = 0; iA < lines; iA++){
-        for(jA = firstBColumn; jA <= lastBColumn; jA++){
-            A[iA][jA] = B[iA][jA];
+        for(jB = firstBColumn; jB <= lastBColumn; jB++){
+            A[iA][jB] = B[iA][jB];
         }
     }
 
     // printf("matriz aux\n" );
     // printIntMatrix(aux_matrix, lines, columns);
-    //
+    // //
     // printf("matriz A (cruzada)\n" );
     // printIntMatrix(A, lines, columns);
 
@@ -102,3 +102,10 @@ void crossMatrixSegment(matrix A, int firstAColumn, int lastAColumn,
     // printf("matriz B (cruzada)\n" );
     // printIntMatrix(B, lines, columns);
 }
+
+// void freeMatrix(matrix m, int rows){
+//     int i;
+//     for(i = 0; i < rows; i++){
+//         free(m[i]);
+//     }
+// }

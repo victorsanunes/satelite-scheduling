@@ -2,22 +2,8 @@
 
 int contador[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-int mutationNumber = 0;
-int crossoverNumber = 0;
-
-// void printIntMatrix(int matrix[MAX_LINES][REQUESTS], int lines, int columns){
-//     int i, j;
-// 	for(i = 0; i < lines; i++){
-// 		for(j = 0; j < columns; j++){
-// 			printf("%d\t", matrix[i][j]);
-// 		}
-// 		printf("\n");
-// 		//Pula mais uma linha a cada LINES_PER_SINGLE_OBJECT linhas
-// 		if((i+1) % LINES_PER_SINGLE_OBJECT == 0){
-//             printf("\n");
-//         }
-// 	}
-// }
+int mutationFrequency = 0;
+int crossoverFrequency = 0;
 
 void printIntArray(int *array, int size){
     int i;
@@ -43,21 +29,6 @@ double truncateValue(int numerador, int denominador){
         return resultado;
     else return (resultado + 1);
 }
-
-/*double *signalQualityValue(int windowSize){
-    double *quality = malloc(windowSize * sizeof(double));
-    int k;
-
-    for(k = 1; k <= windowSize; ++k){
-        if(k <= truncateValue(windowSize, 2)){
-            quality[k-1] = k * 1/truncateValue(windowSize, 2);
-        }
-        else{
-            quality[k-1] = (windowSize - k + 1) /truncateValue(windowSize, 2);
-        }
-    }
-    return quality;
-}*/
 
 double signalQualityValue(int windowSize, int k){
     //double quality;
@@ -177,7 +148,8 @@ void calculateFitnessValues(double *fitnessValues,int size,
                                                         window_ending);
             }
             else {
-                fitnessValues[k] += -0.00;
+                // PENALIDADE
+                fitnessValues[k] += -1.00;
             }
         }
 
@@ -271,14 +243,14 @@ double getArrayValuesSum(double *v, int size){
     return sum;
 }
 
-int rouletteWheelSelection(int population_size, double *roulette){
+int rouletteWheelSelection(int population_size, double *roulette, objectSummary *objects){
     int index_object;
     double probability_value, sum_probability_values;
     int index_selected;
 
     //Seleciona um valor de probabilidade para escolher o individuo
     probability_value = (rand() % 10000) / 100.0; //Valores reais entre 0.00 e 99.99
-    // printf("valor sorteado = %lf\n", probability_value);
+    // printf("valor sorteado (roleta) = %lf\n", probability_value);
 
     index_object = 0;
     sum_probability_values = roulette[index_object];
@@ -291,18 +263,45 @@ int rouletteWheelSelection(int population_size, double *roulette){
     //Melhorar com busca binaria
 
     index_selected = index_object;
-    contador[index_selected]++;
+    contador[objects[index_selected].index/LINES_PER_SINGLE_OBJECT]++;
     return index_selected;
 }
 
-void crossover(matrix population, int index_selected1, int index_selected2){
-    crossoverNumber++;
+void updatePopulation(matrix population, matrix new_population,
+                        int linesPerSingleObject, int columns,
+                        int new_objects, objectSummary *objects) {
+
+    int i, j, k, firstLinePosition, l;
+    l = 0;
+    //Itera sobre o vetor de indices para calcular a posicao de insercao na matriz de populacao
+    for(i = 0; i < new_objects; i++){
+        //Posicao de insercao do i-esimo novo individuo na populacao
+        firstLinePosition = objects[i].index;
+
+        //Insere o novo individuo na matriz na posicao correta
+        for(j = firstLinePosition; j < firstLinePosition + linesPerSingleObject; j++){
+            for(k = 0; k < columns; k++){
+                population[j][k] = new_population[l][k];
+            }
+            l++;
+        }
+    }
+}
+
+// new_population: matriz auxiliar com individuos criados a cada geracao
+// index_selected1: Eh o indice do vetor populationInsertionIndex
+// multiplicado pelo LINES_PER_SINGLE_OBJECT
+// matrix_index1 eh o indice do individuo na populacao original
+void crossover(matrix population, matrix new_population,
+                int matrix_index1, int matrix_index2,
+                int index_selected1, int index_selected2){
+    crossoverFrequency++;
     matrix single_new_object1 = alocateMatrix(LINES_PER_SINGLE_OBJECT, REQUESTS);
     matrix single_new_object2 = alocateMatrix(LINES_PER_SINGLE_OBJECT, REQUESTS);
 
     int i, j;
-    int index1 = index_selected1;
-    int index2 = index_selected2;
+    int index1 = matrix_index1;
+    int index2 = matrix_index2;
 
     //Copia os individuos originais para as estruturas auxiliares
     for(i = 0; i < LINES_PER_SINGLE_OBJECT; i++){
@@ -314,30 +313,37 @@ void crossover(matrix population, int index_selected1, int index_selected2){
         index2++;
     }
 
+    //Cruza as colunas 2 e 3 de single_new_object1 e single_new_object2
     crossMatrixSegment( single_new_object1, 2, 3,
                         single_new_object2, 2, 3,
                         LINES_PER_SINGLE_OBJECT, REQUESTS);
 
     // Insere novos objetos na populacao
-    insertObjectInPopulation(population, single_new_object1, index_selected1, LINES_PER_SINGLE_OBJECT, REQUESTS);
-    insertObjectInPopulation(population, single_new_object2, index_selected2, LINES_PER_SINGLE_OBJECT, REQUESTS);
-
-
+    insertObjectInPopulation(new_population, single_new_object1, index_selected1, LINES_PER_SINGLE_OBJECT, REQUESTS);
+    insertObjectInPopulation(new_population, single_new_object2, index_selected2, LINES_PER_SINGLE_OBJECT, REQUESTS);
 }
 
-void mutation(int population_size, int index_selected1, matrix population){
-    mutationNumber++;
-    int matrix_index;
-    matrix_index = index_selected1;
-    // printf("indice na roleta: %d\n", index_selected1);
-    // printf("indice na matriz: %d\n", matrix_index);
-    int i, j;
+// index: posicao de insercao na matriz auxiliar. Eh o indice do vetor
+// populationInsertionIndex multiplicado pelo LINES_PER_SINGLE_OBJECT
+// matrix_index eh a posicao do individuo na populacao original
+void mutation(matrix population, matrix new_population, int lines, int columns, int matrix_index, int index){
+    mutationFrequency++;
+    int i, j, k;
+    k = matrix_index;
+
+    //Faz a copia do individuo original
+    for(i = index; i < index + lines; i++){
+        for(j = 0; j < REQUESTS; j++){
+            new_population[i][j] = population[k][j];
+        }
+        k++;
+    }
 
     //Insere os valores do novo individuo na populacao deslocando para direita
     for (i = 0; i < REQUESTS; i++){
-        population[matrix_index + 1][i] += 1;
-        population[matrix_index + 2][i] += 1;
-        population[matrix_index + 3][i] += 1;
+        new_population[index + 1][i] += 1;
+        new_population[index + 2][i] += 1;
+        new_population[index + 3][i] += 1;
     }
 }
 
@@ -354,40 +360,34 @@ void insertObjectInPopulation(matrix population, matrix object, int firstLinePos
     }
 }
 
-//new_objects: quantidade de novos objetos a serem criados a cada geracao
+//new_objects: quantidade de novos objetos criados a cada geracao
 // fitnessValues: Vetor de aptidoes
 // population: matriz de populacao
 // quality1_values: qualidade do sinal da janela 1
 // quality2_values: qualidade do sinal da janela 2
 // objects: vetor ordenado com a aptidao e a posicao inicial na populacao
-
+//new_population: matriz de novos individuos gerados
 void reproduction(int population_size, int new_objects,
-                    double *fitnessValues, matrix population,
+                    double *fitnessValues, matrix population, matrix new_population,
                     double *quality1_values, double *quality2_values,
                     objectSummary *objects){
 
-    // printf("\n\n\tReproducao\n");
-
-    // srand(1);
-    // srand(time(NULL));
     int index_new_object, index_object;
-    int index_father1, index_father2;
     double *roulette;
     int probability_value;
     int crossover_rate;
     double sum_fitness_values;
     int index_selected1, index_selected2;
-    int object_counter = 0;
     int i, j, k;
     int window, k_line, request_beginning, request_ending, window_beginning, window_ending;
+
+    // Vetor com o indice de insercao dos individuos na matriz de populacao
+    int populationInsertionIndex[new_objects];
+    // double *newObjectsFitnessValues = (double*)malloc(new_objects * sizeof(double));
 
     //Parametros do algoritmo genetico
     crossover_rate = 90;
 
-    // Copia os valores de aptidao ja ordenados para o vetor de valores de aptidao
-    for(i = 0; i < MAX_OBJECTS; i++){
-        fitnessValues[i] = objects[i].fitnessValue;
-    }
     //Montagem da roleta
     roulette = (double*)malloc(population_size * sizeof(double));
     sum_fitness_values = 0.0;
@@ -399,71 +399,88 @@ void reproduction(int population_size, int new_objects,
         roulette[index_object] = 100.0 * fitnessValues[index_object]/sum_fitness_values;
     }
 
-    // printf("\n========Roleta========\n" );
-    // printDoubleArray(roulette, population_size);
-
+    //Contador de individuos gerados
     i = 0;
+
+    // Indice do vetor populationInsertionIndex
+    j = 0;
     while(i < new_objects){
 
         // Gera valores entre 1 e 100
-        // srand(time(NULL));
         probability_value = rand() % 100 + 1;
         // printf("Proabilidade: %d%%\n", probability_value);
 
         if(probability_value <= crossover_rate){
             // printf("Método: Crossover\n");
+
+            // Quantidade de individuos gerados no crossover
             i += 2;
-            // printf("%d individuos a serem criados....\n", i);
 
             //Sorteia os objetos
-            index_selected1 = rouletteWheelSelection(population_size, roulette);
-            index_selected2 = rouletteWheelSelection(population_size, roulette);
+            index_selected1 = rouletteWheelSelection(population_size, roulette, objects);
+            index_selected2 = rouletteWheelSelection(population_size, roulette, objects);
+
             while(index_selected1 == index_selected2){
-                // printf("index_selected1 == index_selected2. Selecionando novo... ");
-                index_selected2 = rouletteWheelSelection(population_size, roulette);
+                index_selected2 = rouletteWheelSelection(population_size, roulette, objects);
             }
 
-            //Trata caso em que crossover foi escolhido com 4 individuos já gerados
+            // Trata caso em que crossover foi escolhido podendo ser gerado apenas
+            // mais 1 individuo
             if(i > new_objects){
-                // printf("Numero maximo de objetos\n");
                 index_selected2 = index_selected1;
             }
-            crossover(population, objects[index_selected1].index, objects[index_selected2].index);
-            // printf("indice na matriz 1 = %d\n", objects[index_selected1].index);
-            // printf("indice na roleta 1 = %d\n",index_selected1);
-            // printf("indice na matriz 2 = %d\n", objects[index_selected2].index);
-            // printf("indice na roleta 2 = %d\n",index_selected2);
+            crossover(population, new_population,
+                        objects[index_selected1].index, objects[index_selected2].index,
+                        (j * LINES_PER_SINGLE_OBJECT), ((j+1) * LINES_PER_SINGLE_OBJECT));
+            populationInsertionIndex[j] = objects[index_selected1].index;
+            j++;
+            populationInsertionIndex[j] = objects[index_selected2].index;
+            j++;
+                // printf("Individuo 1 selecionado: %d\n", objects[index_selected1].index/LINES_PER_SINGLE_OBJECT);
+                // printf("Individuo 2 selecionado: %d\n", objects[index_selected2].index/LINES_PER_SINGLE_OBJECT);
 
         }
         else{
             // printf("Método: Mutacao\n" );
             i += 1;
-            index_selected1 = rouletteWheelSelection(population_size, roulette);
-            mutation(population_size, objects[index_selected1].index, population);
-            // printf("Selecionado 1 = %d\n", index_selected1);
-        }
+            index_selected1 = rouletteWheelSelection(population_size, roulette, objects);
+            // printf("Individuo 1 selecionado: %d\n", objects[index_selected1].index/LINES_PER_SINGLE_OBJECT);
+            mutation(population, new_population,
+                    LINES_PER_SINGLE_OBJECT, REQUESTS,
+                    objects[index_selected1].index,
+                    (j * LINES_PER_SINGLE_OBJECT));
 
-        //Calcula a aptidao de cada individuo da nova populacao
-        calculateFitnessValues(fitnessValues, MAX_OBJECTS,
-                                population, MAX_OBJECTS, REQUESTS,
-                                quality1_values,
-                                quality2_values);
-        for(i = 0; i < MAX_OBJECTS; i++){
-            objects[i].fitnessValue = fitnessValues[i];
+            populationInsertionIndex[j] = objects[index_selected1].index;
+            j++;
         }
     }
-    // printIntArray(contador, 20);
+
+    // printf("\n\n5 OBJECTS\n");
+    // printIntMatrix(new_population, NEW_OBJECTS * LINES_PER_SINGLE_OBJECT, REQUESTS);
+
+    //Insere novos individuos na populacao na posicao dos N piores
+    updatePopulation(population, new_population,
+                            LINES_PER_SINGLE_OBJECT, REQUESTS,
+                            new_objects, objects);
+
+    //Calcula a aptidao da nova populacao gerada
+    calculateFitnessValues(fitnessValues, MAX_OBJECTS,
+                            population, MAX_OBJECTS, REQUESTS,
+                            quality1_values,
+                            quality2_values);
+
+    // printf("\nNOVO FITNESS\n");
+    // printDoubleArray(fitnessValues, MAX_OBJECTS);
+
     free(roulette);
 }
 
 void imprimeContador(){
     printf("\n\nContador\n");
-    printIntArray(contador, 20);
+    printIntArray(contador, MAX_OBJECTS);
 }
 
 void printStatistics(){
-    printf("%d mutacoes\n", mutationNumber);
-    printf("%d crossover\n", crossoverNumber);
+    printf("%d mutacoes\n", mutationFrequency);
+    printf("%d crossover\n", crossoverFrequency);
 }
-
-@TODO: inserir indivudos no final da geracao

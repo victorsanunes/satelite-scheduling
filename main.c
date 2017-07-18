@@ -89,11 +89,13 @@ int main(){
 
 	//Popula a matrix de individuos
 	matrix population = alocateMatrix(MAX_LINES, REQUESTS);
+    matrix new_population = alocateMatrix(NEW_OBJECTS * LINES_PER_SINGLE_OBJECT, REQUESTS);
     initializeMatrix(population, MAX_LINES, REQUESTS);
+    initializeMatrix(new_population, NEW_OBJECTS * LINES_PER_SINGLE_OBJECT, REQUESTS);
     fillMatrixWithValues(population, MAX_LINES, REQUESTS, dataset);
 
-	// printf("\n\n====POPULATION====\n\n");
-	// printIntMatrix(population, MAX_LINES, REQUESTS);
+	printf("\n\n====POPULATION====\n\n");
+	printIntMatrix(population, MAX_LINES, REQUESTS);
 
 	//Calcula funcao objetivo
     double *fitnessValues = malloc(MAX_OBJECTS * sizeof(double));
@@ -102,7 +104,7 @@ int main(){
                             quality1_values,
                             quality2_values);
 
-	// printf("\n\n====FITNESS VALUES====\n\n");
+	// printf("\n\n====FIRST FITNESS VALUES====\n\n");
 	// printDoubleArray(fitnessValues, MAX_OBJECTS);
 
     //Preenche a estrutura para ordenar os valores de aptidao
@@ -114,20 +116,36 @@ int main(){
 
     sortObjectsByFitnessValues(objects, MAX_OBJECTS);
 
+    // Copia os valores de fitness ordenados
     for(i = 0; i < MAX_OBJECTS; i++){
         fitnessValues[i] = objects[i].fitnessValue;
+        printf("%d(index: %d): %.2f\n", i, objects[i].index/LINES_PER_SINGLE_OBJECT, objects[i].fitnessValue);
     }
+    // printf("\n");
 
     srand(1);
+
+    // Iteracoes das geracoes
     for(i = 0; i < MAX_GENERATION; i++){
 
-        reproduction(MAX_OBJECTS, NEW_OBJECTS, fitnessValues, population, quality1_values, quality2_values, objects);
+        reproduction(MAX_OBJECTS, NEW_OBJECTS, fitnessValues, population, new_population, quality1_values, quality2_values, objects);
+
+        //Preenche a estrutura para ordenar os valores de aptidao
+        for(j = 0; j < MAX_OBJECTS; j++){
+            //Calcula o indice do objeto na matriz de populacao
+            objects[j].index = j * LINES_PER_SINGLE_OBJECT;
+            objects[j].fitnessValue = fitnessValues[j];
+        }
+
         sortObjectsByFitnessValues(objects, MAX_OBJECTS);
+
         for(j = 0; j < MAX_OBJECTS; j++){
             fitnessValues[j] = objects[j].fitnessValue;
+            // printf("%d(index: %d): %.2f\n", j, objects[j].index/LINES_PER_SINGLE_OBJECT, objects[j].fitnessValue);
         }
-        // printf("\n\n====FITNESS VALUES====\n\n");
-    	// printDoubleArray(fitnessValues, MAX_OBJECTS);
+
+        // Reseta a matriz auxiliar
+        initializeMatrix(new_population, NEW_OBJECTS * LINES_PER_SINGLE_OBJECT, REQUESTS);
     }
 
     printf("\n\n====FITNESS VALUES====\n\n");
@@ -141,5 +159,7 @@ int main(){
     printIntMatrix(population, MAX_LINES, REQUESTS);
 
     printStatistics();
+    free(quality1_values);
+    free(quality2_values);
 	return 0;
 }
