@@ -1,7 +1,7 @@
-#define MAX_SIZE 500
+#define MAX_SIZE 1000
 
 //Quantidade maxima de individuos iniciais
-#define MAX_OBJECTS 4
+#define MAX_OBJECTS 20
 
 //Numero de solicitacoes
 #define REQUESTS 4
@@ -28,5 +28,5 @@
 #define NEW_OBJECTS 1
 
 // #define INPUT_FILE "POPULACAO_INICIAL - CASO OTIMO.txt"
-// #define INPUT_FILE "POPULACAO_INICIAL.txt"
-#define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
+#define INPUT_FILE "POPULACAO_INICIAL.txt"
+// #define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"

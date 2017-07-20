@@ -81,7 +81,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
                             matrix population, int lines, int columns,
                             double *quality1_values,
                             double *quality2_values){
-    int i, j, k, l, m;
+    int i, j, k, l;
     int window, k_line, request_beginning, request_ending, window_beginning, window_ending;
 	int next_window, next_request_beginning, next_request_ending;
     int station, next_station;
@@ -95,7 +95,6 @@ void calculateFitnessValues(double *fitnessValues,int size,
     }
 
     i = 0;
-    m = 0;
     //Preenche o vetor com os valores da funcao de aptidao
 	for(k = 0; k < size; k++){
 
@@ -121,7 +120,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
     			if(window == next_window){
                     // printf("mesmo janela\n");
                     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        printf("preemptivadade\n");
+                        // printf("preemptivadade\n");
                         penaltyFlag = 1; //Sera penalizado
                     }
     			}
@@ -130,7 +129,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
     			else if(station == next_station){
                     //Checa restricao de redundancia
                     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        printf("redundancia\n");
+                        // printf("redundancia\n");
                         penaltyFlag = 1; //Sera penalizado
                     }
     			}
@@ -146,11 +145,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
             else {
                 // printf("entrou no penaltyFlag\n" );
                 window_beginning 	= population[i + 5][j];
-                printf("window_beginning 1: %d\n", window_beginning);
                 window_ending 		= population[i + 6][j];
-                m++;
-                if(m >= REQUESTS)
-                    m = 0;
                 fitnessValues[k]    += fitnessFunction(	quality1_values,
                                                         quality2_values,
                                                         window, k_line,
