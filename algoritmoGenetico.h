@@ -53,5 +53,5 @@ void updatePopulation(matrix population, matrix new_population,
                         int new_objects, objectSummary *objects);
 void insertObjectInPopulation(matrix population, matrix object,
                                 int firstLinePosition, int lines, int columns);
-void imprimeContador();
+void imprimeContador(objectSummary *objects);
 void printStatistics();

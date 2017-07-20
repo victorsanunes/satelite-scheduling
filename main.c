@@ -104,8 +104,8 @@ int main(){
                             quality1_values,
                             quality2_values);
 
-	// printf("\n\n====FIRST FITNESS VALUES====\n\n");
-	// printDoubleArray(fitnessValues, MAX_OBJECTS);
+	printf("\n\n====FIRST FITNESS VALUES====\n\n");
+	printDoubleArray(fitnessValues, MAX_OBJECTS);
 
     //Preenche a estrutura para ordenar os valores de aptidao
     for(i = 0; i < MAX_OBJECTS; i++){
@@ -119,7 +119,7 @@ int main(){
     // Copia os valores de fitness ordenados
     for(i = 0; i < MAX_OBJECTS; i++){
         fitnessValues[i] = objects[i].fitnessValue;
-        printf("%d(index: %d): %.2f\n", i, objects[i].index/LINES_PER_SINGLE_OBJECT, objects[i].fitnessValue);
+        // printf("%d(index: %d): %.2f\n", i, objects[i].index/LINES_PER_SINGLE_OBJECT, objects[i].fitnessValue);
     }
     // printf("\n");
 
@@ -148,13 +148,13 @@ int main(){
         initializeMatrix(new_population, NEW_OBJECTS * LINES_PER_SINGLE_OBJECT, REQUESTS);
     }
 
-    printf("\n\n====FITNESS VALUES====\n\n");
+    printf("\n\n==== LAST FITNESS VALUES====\n\n");
     for(i = 0; i < MAX_OBJECTS; i++){
         printf("%d: ", objects[i].index/LINES_PER_SINGLE_OBJECT);
         printf("%.2f |", fitnessValues[i]);
     }
 
-    imprimeContador();
+    imprimeContador(objects);
     printf("\n\n==== LAST POPULATION ====\n\n");
     printIntMatrix(population, MAX_LINES, REQUESTS);
 

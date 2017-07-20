@@ -57,7 +57,9 @@ double fitnessFunction(	double *quality1,
 
     //Checa se as restricoes estao sendo atendidas, se nao estiverem, zera os valores
 	if(request_beginning < window_beginning || request_ending > window_ending || request_beginning >= request_ending){
-
+        // printf("restricao\n\n");
+        // printf("request_beginning %d\n", request_beginning);
+        // printf("window_beginning %d\n", window_beginning);
         weight = 0;
 		value = 0.0;
 	}
@@ -79,10 +81,13 @@ void calculateFitnessValues(double *fitnessValues,int size,
                             matrix population, int lines, int columns,
                             double *quality1_values,
                             double *quality2_values){
-    int i, j, k, l;
+    int i, j, k, l, m;
     int window, k_line, request_beginning, request_ending, window_beginning, window_ending;
-	int interval, next_window, next_request_beginning, next_request_ending;
+	int next_window, next_request_beginning, next_request_ending;
+    int station, next_station;
     int request_size;
+    int penaltyFlag = 0;
+    double temporaryFitnessValue = 0.0;
 
     //Zera os valores do vetor
     for(i = 0; i < size; i++){
@@ -90,14 +95,17 @@ void calculateFitnessValues(double *fitnessValues,int size,
     }
 
     i = 0;
-    //for para preencher o vetor com os valores calculados da funcao
-	for(k = 0; k < lines; k++){
-		//Percorre a matriz de populacao
+    m = 0;
+    //Preenche o vetor com os valores da funcao de aptidao
+	for(k = 0; k < size; k++){
+
+        //Obtem as informacoes de cada solicitacao
 		for(j = 0; j < columns; j++){
 		    window                = population[i][j];
 		    k_line                = population[i + 1][j];
 		    request_beginning     = population[i + 2][j];
             request_ending        = population[i + 3][j];
+            station               = population[i + 4][j];
             request_size = request_ending - request_beginning;
 
             //Checa a restrição de não preemptivadade: não pode ter mais de uma
@@ -107,59 +115,67 @@ void calculateFitnessValues(double *fitnessValues,int size,
                 next_window = population[i][l];
                 next_request_beginning = population[i + 2][l];
                 next_request_ending = population[i + 3][l];
-                // printf("Pa: %d   Pp: %d\n", request_beginning, next_request_beginning);
+                next_station = population[i + 4][l];
+
     			//Checa se a proxima solicitacao esta na mesma janela
     			if(window == next_window){
                     // printf("mesmo janela\n");
                     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        // printf("preemptivadade\n");
-                        interval = -1; //Sera penalizado
+                        printf("preemptivadade\n");
+                        penaltyFlag = 1; //Sera penalizado
                     }
-                    else{
-                        interval = 2;
-                    }
-    			    // else{
-                    //     interval = abs(next_request_beginning - request_ending);
-                    // }
     			}
 
-    			else {
+                //Checa se a proxima solicitacao esta na mesma estacao
+    			else if(station == next_station){
+                    //Checa restricao de redundancia
                     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        // printf("redundancia\n");
-                        interval = -1; //Sera penalizado
-                    }
-                    else{
-                        interval = 2;
+                        printf("redundancia\n");
+                        penaltyFlag = 1; //Sera penalizado
                     }
     			}
-                //Testa se houve um salto no agendamento entre uma solicitacao e outra
+            }
 
-    		}
-            if(interval >= 2){
-                // printf("entrou no interval\n" );
-                window_beginning 	= population[i + 4][j];
-                window_ending 		= population[i + 5][j];
-                fitnessValues[k] 	+= fitnessFunction(	quality1_values,
+            if(penaltyFlag == 1){
+                // PENALIDADE
+                // printf("PENALIDE MAXIMA\n");
+                fitnessValues[k] += -1.00;
+                penaltyFlag = 0;
+            }
+
+            else {
+                // printf("entrou no penaltyFlag\n" );
+                window_beginning 	= population[i + 5][j];
+                printf("window_beginning 1: %d\n", window_beginning);
+                window_ending 		= population[i + 6][j];
+                m++;
+                if(m >= REQUESTS)
+                    m = 0;
+                fitnessValues[k]    += fitnessFunction(	quality1_values,
                                                         quality2_values,
                                                         window, k_line,
                                                         request_beginning,
                                                         request_ending,
                                                         window_beginning,
                                                         window_ending);
-            }
-            else {
-                // PENALIDADE
-                fitnessValues[k] += -1.00;
+                // printf("f: %.2f\n", fitnessFunction(	quality1_values,
+                //                                         quality2_values,
+                //                                         window, k_line,
+                //                                         request_beginning,
+                //                                         request_ending,
+                //                                         window_beginning,
+                //                                         window_ending));
+                penaltyFlag = 0;
             }
         }
-
-		// printf("%d\n", interval);
+		// printf("%d\n", penaltyFlag);
 		i = i + LINES_PER_SINGLE_OBJECT;
-	}
-
-
-
+    }
 }
+
+
+
+
 
 double calculateSingleFitnessValue(matrix object, int lines, int columns, double *quality1_values, double *quality2_values){
     int i, j, k, l;
@@ -381,6 +397,7 @@ void reproduction(int population_size, int new_objects,
     int i, j, k;
     int window, k_line, request_beginning, request_ending, window_beginning, window_ending;
 
+
     // Vetor com o indice de insercao dos individuos na matriz de populacao
     int populationInsertionIndex[new_objects];
     // double *newObjectsFitnessValues = (double*)malloc(new_objects * sizeof(double));
@@ -397,6 +414,7 @@ void reproduction(int population_size, int new_objects,
     //Calcula as probabilidades para cada individuo
     for(index_object = 0; index_object < population_size; index_object++){
         roulette[index_object] = 100.0 * fitnessValues[index_object]/sum_fitness_values;
+
     }
 
     //Contador de individuos gerados
@@ -427,18 +445,30 @@ void reproduction(int population_size, int new_objects,
             // Trata caso em que crossover foi escolhido podendo ser gerado apenas
             // mais 1 individuo
             if(i > new_objects){
-                index_selected2 = index_selected1;
-            }
-            crossover(population, new_population,
-                        objects[index_selected1].index, objects[index_selected2].index,
-                        (j * LINES_PER_SINGLE_OBJECT), ((j+1) * LINES_PER_SINGLE_OBJECT));
-            populationInsertionIndex[j] = objects[index_selected1].index;
-            j++;
-            populationInsertionIndex[j] = objects[index_selected2].index;
-            j++;
-                // printf("Individuo 1 selecionado: %d\n", objects[index_selected1].index/LINES_PER_SINGLE_OBJECT);
-                // printf("Individuo 2 selecionado: %d\n", objects[index_selected2].index/LINES_PER_SINGLE_OBJECT);
 
+                index_selected2 = index_selected1;
+                crossover(population, new_population,
+                            objects[index_selected1].index, objects[index_selected2].index,
+                            (j * LINES_PER_SINGLE_OBJECT), (j * LINES_PER_SINGLE_OBJECT) );
+
+                populationInsertionIndex[j] = objects[index_selected1].index;
+                populationInsertionIndex[j] = objects[index_selected2].index;
+                j++;
+
+
+            }
+            else{
+                crossover(population, new_population,
+                        objects[index_selected1].index, objects[index_selected2].index,
+                        (j * LINES_PER_SINGLE_OBJECT), ((j+1) * LINES_PER_SINGLE_OBJECT) );
+
+                populationInsertionIndex[j] = objects[index_selected1].index;
+                j++;
+                populationInsertionIndex[j] = objects[index_selected2].index;
+                j++;
+                    // printf("Individuo 1 selecionado: %d\n", objects[index_selected1].index/LINES_PER_SINGLE_OBJECT);
+                    // printf("Individuo 2 selecionado: %d\n", objects[index_selected2].index/LINES_PER_SINGLE_OBJECT);
+            }
         }
         else{
             // printf("Método: Mutacao\n" );
@@ -475,9 +505,13 @@ void reproduction(int population_size, int new_objects,
     free(roulette);
 }
 
-void imprimeContador(){
+void imprimeContador(objectSummary *objects){
+    int i;
     printf("\n\nContador\n");
-    printIntArray(contador, MAX_OBJECTS);
+    for(i = 0; i < MAX_OBJECTS; i++){
+        printf("individuo %d: %d |\n", objects[i].index/LINES_PER_SINGLE_OBJECT, contador[i]);
+    }
+    // printIntArray(contador, MAX_OBJECTS);
 }
 
 void printStatistics(){
