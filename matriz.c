@@ -103,9 +103,9 @@ void crossMatrixSegment(matrix A, int firstAColumn, int lastAColumn,
     // printIntMatrix(B, lines, columns);
 }
 
-// void freeMatrix(matrix m, int rows){
-//     int i;
-//     for(i = 0; i < rows; i++){
-//         free(m[i]);
-//     }
-// }
+void freeMatrix(matrix m, int rows){
+    int i;
+    for(i = 0; i < rows; i++){
+        free(m[i]);
+    }
+}
