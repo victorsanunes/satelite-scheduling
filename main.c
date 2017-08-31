@@ -44,7 +44,7 @@ void swapObjects(objectSummary *vetor, int a, int b){
 
 void sortObjectsByFitnessValues(objectSummary *vetor, int size){
     int i, j;
-
+    puts("Entrou na ordenacao");
     for (i = 0; i < size; i++) {
         for(j = i + 1; j < size; j++){
             if(vetor[i].fitnessValue > vetor[j].fitnessValue ){
@@ -52,6 +52,7 @@ void sortObjectsByFitnessValues(objectSummary *vetor, int size){
             }
         }
     }
+    puts("fim da ordenacao");
 }
 
 int main(){
@@ -106,6 +107,8 @@ int main(){
 
 	printf("\n\n====FIRST FITNESS VALUES====\n\n");
 	printDoubleArray(fitnessValues, MAX_OBJECTS);
+    puts("Calculou o fitness");
+    getchar();
 
     //Preenche a estrutura para ordenar os valores de aptidao
     for(i = 0; i < MAX_OBJECTS; i++){
@@ -113,23 +116,30 @@ int main(){
         objects[i].index = i * LINES_PER_SINGLE_OBJECT;
         objects[i].fitnessValue = fitnessValues[i];
     }
+    puts("Preencheu estrutura");
+    getchar();
 
     sortObjectsByFitnessValues(objects, MAX_OBJECTS);
-
+    puts("Ordenou");
+    getchar();
     // Copia os valores de fitness ordenados
     for(i = 0; i < MAX_OBJECTS; i++){
         fitnessValues[i] = objects[i].fitnessValue;
-        // printf("%d(index: %d): %.2f\n", i, objects[i].index/LINES_PER_SINGLE_OBJECT, objects[i].fitnessValue);
+        // printf("index: %d: %.2f\n", objects[i].index/LINES_PER_SINGLE_OBJECT, objects[i].fitnessValue);
     }
     // printf("\n");
+    puts("Copiou ordenado para a estrutura");
+    getchar();
 
     srand(1);
 
     // Iteracoes das geracoes
     for(i = 0; i < MAX_GENERATION; i++){
-
+        puts("Reproduzira")
+        getchar();
         reproduction(MAX_OBJECTS, NEW_OBJECTS, fitnessValues, population, new_population, quality1_values, quality2_values, objects);
-
+        puts("Reproduziu");
+        getchar();
         //Preenche a estrutura para ordenar os valores de aptidao
         for(j = 0; j < MAX_OBJECTS; j++){
             //Calcula o indice do objeto na matriz de populacao
@@ -138,14 +148,20 @@ int main(){
         }
 
         sortObjectsByFitnessValues(objects, MAX_OBJECTS);
+        puts("Ordenou de novo");
+        getchar();
 
         for(j = 0; j < MAX_OBJECTS; j++){
             fitnessValues[j] = objects[j].fitnessValue;
             // printf("%d(index: %d): %.2f\n", j, objects[j].index/LINES_PER_SINGLE_OBJECT, objects[j].fitnessValue);
         }
+        puts("Copiou para a estrutura");
+        getchar();
 
         // Reseta a matriz auxiliar
         initializeMatrix(new_population, NEW_OBJECTS * LINES_PER_SINGLE_OBJECT, REQUESTS);
+        puts("Resetou matriz");
+        getchar();
     }
 
     printf("\n\n==== LAST FITNESS VALUES====\n\n");

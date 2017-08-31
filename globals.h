@@ -2,7 +2,6 @@
 
 //Quantidade maxima de individuos iniciais
 #define MAX_OBJECTS 20
-
 //Numero de solicitacoes
 #define REQUESTS 4
 
@@ -22,7 +21,7 @@
 #define HORIZON_SIZE 50
 
 // Numero de geracoes maximas
-#define MAX_GENERATION 2
+#define MAX_GENERATION 1
 
 // Numero de individuos gerados a cada geracao
 #define NEW_OBJECTS 1

@@ -57,10 +57,19 @@ def generatePopulation(populationSize, requestsNumber):
 
 def convertPopulationIntoArray(population):
     finalPopulation = list()
+    numberOfRequests = len(population[0])
+    numberOfObjects = len(population)
+    numberOfFeatures = len(population[0][0])
+
+    print(repr(numberOfObjects) + "individuos")
+    print(repr(numberOfRequests) + "solicitacoes")
+    print(repr(numberOfFeatures) + "atributos")
     for x in range(len(population)):
+        # Itera sobre os individuos
+        z = 0
         for y in range(len(population[x])):
-            for z in range(len(population[x][y])):
-                finalPopulation.append(population[x][y][z])
+            finalPopulation.append(population[x][y][z])
+            z = z + 1
     # print("FINAL: " + repr(finalPopulation))
     return finalPopulation
 
@@ -72,7 +81,9 @@ def saveListIntoTXTFile(array):
 
 def main():
     print("Gerador de populacao")
-    population = generatePopulation(2, 4)
+
+    # Numero de individuos, numero de solicitacoes1
+    population = generatePopulation(2, 2)
     # population = list()
     # request = list()
     # singleObject = list()
@@ -91,7 +102,11 @@ def main():
     # population.append(request)
 
     finalPopulation = convertPopulationIntoArray(population)
-    saveListIntoTXTFile(finalPopulation)
+    # saveListIntoTXTFile(finalPopulation)
+    print(repr(finalPopulation))
+    print(repr(population[0]))
+    print(repr(population[0][0]))
+    print(repr(population[0][0][0]))
 
 # ==============================================================================
 main()

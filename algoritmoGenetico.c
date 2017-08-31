@@ -54,6 +54,20 @@ double fitnessFunction(	double *quality1,
 
 	int weight = 1;
 	double value = 0.0;
+    // int k_lineCheck, requestSize;
+    // requestSize  = request_ending - request_beginning;
+    // k_lineCheck = 0;
+    // // Se o intervalo for par, a request tem tamanho impar
+    // if(requestSize % 2 == 0){
+    //     if(k_line != (request_beginning + request_ending)/2)
+    //         k_lineCheck = 1;
+    // }
+    // else{
+    //     if( (k_line != (request_beginning + request_ending)/2) || (k_line != (1 + (request_beginning + request_ending)/2) ) )
+    //         k_lineCheck = 1;
+    // }
+
+
 
     //Checa se as restricoes estao sendo atendidas, se nao estiverem, zera os valores
 	if(request_beginning < window_beginning || request_ending > window_ending || request_beginning >= request_ending){
@@ -61,7 +75,7 @@ double fitnessFunction(	double *quality1,
         // printf("request_beginning %d\n", request_beginning);
         // printf("window_beginning %d\n", window_beginning);
         weight = 0;
-		value = 0.0;
+		value = -10.0;
 	}
 	else if(window == 1){
 			// printf("\nq = %.2f\n", quality1[k_line - 1]);
@@ -97,49 +111,68 @@ void calculateFitnessValues(double *fitnessValues,int size,
     i = 0;
     //Preenche o vetor com os valores da funcao de aptidao
 	for(k = 0; k < size; k++){
+        // printf("\n\n====================\nPRIMEIRO FOR (k=%d)\n", k);
 
         //Obtem as informacoes de cada solicitacao
 		for(j = 0; j < columns; j++){
+            // printf("SEGUNDO FOR (j=%d)\n", j);
 		    window                = population[i][j];
 		    k_line                = population[i + 1][j];
 		    request_beginning     = population[i + 2][j];
             request_ending        = population[i + 3][j];
             station               = population[i + 4][j];
             request_size = request_ending - request_beginning;
+            // printf("Comeco atual: %d\n", request_beginning);
 
             //Checa a restrição de não preemptivadade: não pode ter mais de uma
             //solicitacao ao mesmo tempo para a mesma estacao.
             //Faz a checagem da solicitacao atual com todas as outras
             for(l = j + 1; l < columns; l++){
+                // printf("TERCEIRO FOR(l=%d)\n", l);
                 next_window = population[i][l];
                 next_request_beginning = population[i + 2][l];
                 next_request_ending = population[i + 3][l];
                 next_station = population[i + 4][l];
+                // printf("Proxima comeco: %d\n", next_request_beginning);
+                // printf("Estacao atual: %d\n", station);
+                // printf("Proxima estacao: %d\n", next_station);
+                // getchar();
 
-    			//Checa se a proxima solicitacao esta na mesma janela
-    			if(window == next_window){
+    			//Checa se a proxima solicitacao esta na mesma janela ou se a
+                // estacao eh a mesma
+    			if(window == next_window || station == next_station){
                     // printf("mesmo janela\n");
+                    // printf("request_beginning: %d\nrequest_ending: %d", request_beginning, request_ending);
+                    // printf("\nnext_request_beginning: %d\nnext_request_ending: %d\n\n", next_request_beginning, next_request_ending);
+                    // getchar();
                     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        // printf("preemptivadade\n");
+                        // printf("PUNICAO\n");
                         penaltyFlag = 1; //Sera penalizado
+                        l = columns + 1;
+
+                        // break;
                     }
     			}
 
-                //Checa se a proxima solicitacao esta na mesma estacao
-    			else if(station == next_station){
-                    //Checa restricao de redundancia
-                    if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        // printf("redundancia\n");
-                        penaltyFlag = 1; //Sera penalizado
-                    }
-    			}
+                // //Checa se a proxima solicitacao esta na mesma estacao
+    			// else if(station == next_station){
+                //     //Checa restricao de redundancia
+                //     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
+                //         // printf("redundancia\n");
+                //         penaltyFlag = 1; //Sera penalizado
+                //     }
+    			// }
             }
+            // printf("SAIU DO TERCEIRO\n\n");
 
             if(penaltyFlag == 1){
                 // PENALIDADE
                 // printf("PENALIDE MAXIMA\n");
-                fitnessValues[k] += -1.00;
+                // getchar();
+                fitnessValues[k] = 0.00;
                 penaltyFlag = 0;
+                j = columns + 1;
+                break;
             }
 
             else {
@@ -163,16 +196,19 @@ void calculateFitnessValues(double *fitnessValues,int size,
                 penaltyFlag = 0;
             }
         }
+        // printf("SAIU DO SEGUNDO\n");
+        // if(penaltyFlag){
+        //     i = size;
+        //     break;
+        // }
 		// printf("%d\n", penaltyFlag);
 		i = i + LINES_PER_SINGLE_OBJECT;
+        // printf("fitness=%.2f\n", fitnessValues[k] );
     }
 }
 
-
-
-
-
-double calculateSingleFitnessValue(matrix object, int lines, int columns, double *quality1_values, double *quality2_values){
+double calculateSingleFitnessValue(matrix object, int lines, int columns,
+                        double *quality1_values, double *quality2_values){
     int i, j, k, l;
     int window, k_line, request_beginning, request_ending, window_beginning, window_ending;
     int interval, next_window, next_request_beginning, next_request_ending;
@@ -245,6 +281,7 @@ double calculateSingleFitnessValue(matrix object, int lines, int columns, double
 
 }
 
+// Retorna a soma de todos os valores de um vetor
 double getArrayValuesSum(double *v, int size){
     int i;
     double sum;
@@ -262,7 +299,7 @@ int rouletteWheelSelection(int population_size, double *roulette, objectSummary 
     //Seleciona um valor de probabilidade para escolher o individuo
     probability_value = (rand() % 10000) / 100.0; //Valores reais entre 0.00 e 99.99
     // printf("valor sorteado (roleta) = %lf\n", probability_value);
-
+    // printf("probabilidade=%.2f\n", probability_value);
     index_object = 0;
     sum_probability_values = roulette[index_object];
 
@@ -271,6 +308,8 @@ int rouletteWheelSelection(int population_size, double *roulette, objectSummary 
         index_object++;
         sum_probability_values += roulette[index_object];
     }
+    // printf("indice roleta=%d\n", index_object);
+    // printf("fitness selecionado=%.2f\n", objects[index_object].fitnessValue);
     //Melhorar com busca binaria
 
     index_selected = index_object;
@@ -278,6 +317,9 @@ int rouletteWheelSelection(int population_size, double *roulette, objectSummary 
     return index_selected;
 }
 
+//population: populacao de individuos
+//new_population: matriz auxiliar com os novos individuos gerados
+//
 void updatePopulation(matrix population, matrix new_population,
                         int linesPerSingleObject, int columns,
                         int new_objects, objectSummary *objects) {
@@ -332,6 +374,8 @@ void crossover(matrix population, matrix new_population,
     // Insere novos objetos na populacao
     insertObjectInPopulation(new_population, single_new_object1, index_selected1, LINES_PER_SINGLE_OBJECT, REQUESTS);
     insertObjectInPopulation(new_population, single_new_object2, index_selected2, LINES_PER_SINGLE_OBJECT, REQUESTS);
+    freeMatrix(single_new_object1, LINES_PER_SINGLE_OBJECT);
+    freeMatrix(single_new_object2, LINES_PER_SINGLE_OBJECT);
 }
 
 // index: posicao de insercao na matriz auxiliar. Eh o indice do vetor
@@ -343,19 +387,26 @@ void mutation(matrix population, matrix new_population, int lines, int columns, 
     k = matrix_index;
 
     //Faz a copia do individuo original
+    // printf("\n\nIndividuo a ser mutado");
     for(i = index; i < index + lines; i++){
         for(j = 0; j < REQUESTS; j++){
+            // printf("%d ", population[k][j]);
             new_population[i][j] = population[k][j];
         }
+        // printf("\n");
         k++;
     }
 
+    // Sorteia qual solicitacao será deslocada
+    i = rand() % REQUESTS + 1;
+
     //Insere os valores do novo individuo na populacao deslocando para direita
-    for (i = 0; i < REQUESTS; i++){
-        new_population[index + 1][i] += 1;
-        new_population[index + 2][i] += 1;
-        new_population[index + 3][i] += 1;
-    }
+    new_population[index + 1][i] += 1;
+    new_population[index + 2][i] += 1;
+    new_population[index + 3][i] += 1;
+
+
+    // Nova alternativa: Gerar um novo k linha aleatoriamente
 }
 
 //Insere objeto novo na matriz de populacao
@@ -398,7 +449,7 @@ void reproduction(int population_size, int new_objects,
     // double *newObjectsFitnessValues = (double*)malloc(new_objects * sizeof(double));
 
     //Parametros do algoritmo genetico
-    crossover_rate = 90;
+    crossover_rate = 50;
 
     //Montagem da roleta
     roulette = (double*)malloc(population_size * sizeof(double));
@@ -408,10 +459,10 @@ void reproduction(int population_size, int new_objects,
 
     //Calcula as probabilidades para cada individuo
     for(index_object = 0; index_object < population_size; index_object++){
+        // printf("individuo=%.2f\n", objects[index_object]);
         roulette[index_object] = 100.0 * fitnessValues[index_object]/sum_fitness_values;
-
     }
-
+    // printf("roleta\n");
     //Contador de individuos gerados
     i = 0;
 
@@ -424,15 +475,16 @@ void reproduction(int population_size, int new_objects,
         // printf("Proabilidade: %d%%\n", probability_value);
 
         if(probability_value <= crossover_rate){
-            // printf("Método: Crossover\n");
+            // printf("=========Método: CROSSOVER\n");
 
             // Quantidade de individuos gerados no crossover
             i += 2;
 
-            //Sorteia os objetos
+            //Sorteia os individuos
             index_selected1 = rouletteWheelSelection(population_size, roulette, objects);
             index_selected2 = rouletteWheelSelection(population_size, roulette, objects);
 
+            //Garante que os individuos sorteados nao sejam iguais
             while(index_selected1 == index_selected2){
                 index_selected2 = rouletteWheelSelection(population_size, roulette, objects);
             }
@@ -440,7 +492,6 @@ void reproduction(int population_size, int new_objects,
             // Trata caso em que crossover foi escolhido podendo ser gerado apenas
             // mais 1 individuo
             if(i > new_objects){
-
                 index_selected2 = index_selected1;
                 crossover(population, new_population,
                             objects[index_selected1].index, objects[index_selected2].index,
@@ -449,8 +500,6 @@ void reproduction(int population_size, int new_objects,
                 populationInsertionIndex[j] = objects[index_selected1].index;
                 populationInsertionIndex[j] = objects[index_selected2].index;
                 j++;
-
-
             }
             else{
                 crossover(population, new_population,
@@ -466,7 +515,7 @@ void reproduction(int population_size, int new_objects,
             }
         }
         else{
-            // printf("Método: Mutacao\n" );
+            // printf("========Método: MUTACAO\n" );
             i += 1;
             index_selected1 = rouletteWheelSelection(population_size, roulette, objects);
             // printf("Individuo 1 selecionado: %d\n", objects[index_selected1].index/LINES_PER_SINGLE_OBJECT);
