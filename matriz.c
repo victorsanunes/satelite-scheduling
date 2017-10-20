@@ -30,16 +30,16 @@ void fillMatrixWithValues(matrix m, int lines, int columns, int *dataset){
     }
 }
 
-void printIntMatrix(matrix m, int lines, int columns){
+void printIntMatrix(matrix m, int lines, int columns, FILE *f){
     int i, j;
 	for(i = 0; i < lines; i++){
 		for(j = 0; j < columns; j++){
-			printf("%d\t", m[i][j]);
+			fprintf(f, "%d\t", m[i][j]);
 		}
-		printf("\n");
-		//Pula mais uma linha a cada LINES_PER_SINGLE_OBJECT linhas
-		if((i+1) % LINES_PER_SINGLE_OBJECT == 0){
-            printf("\n");
+		fprintf(f, "\n");
+		//Pula mais uma linha a cada LINES_PER_SINGLE_INDIVIDUAL linhas
+		if((i+1) % LINES_PER_SINGLE_INDIVIDUAL == 0){
+            fprintf(f, "\n");
         }
 	}
 }

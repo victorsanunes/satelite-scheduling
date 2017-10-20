@@ -1,0 +1,52 @@
+================== PRIMEIROS VALORES DE APTIDOES ===================
+individuo[1]=0.00
+individuo[3]=2.38
+individuo[5]=2.38
+individuo[7]=2.38
+individuo[9]=2.38
+individuo[11]=2.38
+individuo[13]=2.38
+individuo[15]=2.38
+individuo[17]=2.38
+individuo[19]=2.38
+individuo[6]=2.56
+individuo[12]=2.56
+individuo[4]=2.56
+individuo[14]=2.56
+individuo[8]=2.56
+individuo[16]=2.56
+individuo[2]=2.56
+individuo[18]=2.56
+individuo[10]=2.56
+individuo[0]=2.75
+===================== NOVOS VALORES DE APTIDOES ===================
+individuo[0]=1.75
+individuo[1]=2.75
+individuo[2]=2.75
+individuo[3]=2.75
+individuo[4]=2.75
+individuo[5]=2.75
+individuo[6]=2.75
+individuo[7]=2.75
+individuo[8]=2.75
+individuo[9]=2.75
+individuo[10]=2.75
+individuo[11]=2.75
+individuo[12]=2.75
+individuo[13]=2.75
+individuo[14]=2.75
+individuo[15]=2.75
+individuo[16]=2.75
+individuo[17]=2.75
+individuo[18]=2.75
+individuo[19]=2.75
+
+======== STATISTICS ==========
+CROSSOVER: 2519
+MUTACAO: 577
+
+======== DADOS DO ALGORITMO ==========
+CROSSOVER_RATE: 80.00
+GERACOES: 1000
+NOVOS INDIVIDUOS POR GERACAO: 5
+

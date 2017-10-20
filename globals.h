@@ -1,18 +1,18 @@
 #define MAX_SIZE 1000
 
 //Quantidade maxima de individuos iniciais
-#define MAX_OBJECTS 20
+#define MAX_INDIVIDUALS 20
 //Numero de solicitacoes
 #define REQUESTS 4
 
 //Numero de linhas que cada individuo ocupara na matriz
-#define LINES_PER_SINGLE_OBJECT 7
+#define LINES_PER_SINGLE_INDIVIDUAL 7
 
 //Numero de atributos de cada individuo
-#define FEATURES_NUMBER REQUESTS * LINES_PER_SINGLE_OBJECT
+#define FEATURES_NUMBER REQUESTS * LINES_PER_SINGLE_INDIVIDUAL
 
 //Numero maximo de linhas
-#define MAX_LINES MAX_OBJECTS * LINES_PER_SINGLE_OBJECT
+#define MAX_LINES MAX_INDIVIDUALS * LINES_PER_SINGLE_INDIVIDUAL
 
 //Discretizacao da janela
 //#define WINDOW_SIZE 5
@@ -24,11 +24,14 @@
 #define MAX_GENERATION 1000
 
 // Numero de individuos gerados a cada geracao
-#define NEW_OBJECTS 5
+#define NEW_INDIVIDUALS 5
 
-#define CROSSOVER_RATE 80
+#define CROSSOVER_RATE 80.0
 
 // #define INPUT_FILE "POPULACAO_INICIAL - CASO OTIMO.txt"
 // #define INPUT_FILE "POPULACAO_INICIAL.txt"
 // #define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
 #define INPUT_FILE "POPULACAO2.txt"
+// #define INPUT_FILE "input_gerado.txt"
+
+#define PRINTING_FLAG 0

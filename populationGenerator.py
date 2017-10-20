@@ -51,8 +51,10 @@ def generateSingleObject(requestsNumber):
 def generatePopulation(populationSize, requestsNumber):
     population = list()
     for i in range(populationSize):
+        print("Individuo #" + repr(i))
         singleObject = generateSingleObject(requestsNumber)
         population.append(singleObject)
+        print("\n")
     return population
 
 def convertPopulationIntoArray(population):
@@ -61,16 +63,18 @@ def convertPopulationIntoArray(population):
     numberOfObjects = len(population)
     numberOfFeatures = len(population[0][0])
 
-    print(repr(numberOfObjects) + "individuos")
-    print(repr(numberOfRequests) + "solicitacoes")
-    print(repr(numberOfFeatures) + "atributos")
-    for x in range(len(population)):
-        # Itera sobre os individuos
-        z = 0
-        for y in range(len(population[x])):
-            finalPopulation.append(population[x][y][z])
-            z = z + 1
-    # print("FINAL: " + repr(finalPopulation))
+    print(repr(numberOfObjects) + " individuos")
+    print(repr(numberOfRequests) + " solicitacoes")
+    print(repr(numberOfFeatures) + " atributos")
+
+    # population[x]: obtem o individuo x
+    # population[x][y]: obtem a solicitacao y do individuo x
+    # population[x][y][z]: obtem os valores da solicitacao y do individuo x
+    # Itera sobre cada um dos individuos
+    for x in range(numberOfObjects):
+        for z in range(numberOfFeatures):
+            for y in range(numberOfRequests):
+                finalPopulation.append(population[x][y][z])
     return finalPopulation
 
 def saveListIntoTXTFile(array):
@@ -79,11 +83,18 @@ def saveListIntoTXTFile(array):
         for item in array:
             file_handler.write(str(item) + '\n' )
 
-def main():
-    print("Gerador de populacao")
+def printPopulation(population):
+    for x in range(len(population)):
+        if x % 2 == 0 and x > 0:
+            print('')
+        print(repr(population[x]))
 
-    # Numero de individuos, numero de solicitacoes1
-    population = generatePopulation(2, 2)
+def main():
+    print("=== Gerador de populacao ===")
+    objects = input("Informe a quantidade de individuos: ")
+    requests = input("Informe a quantidade de solicitacoes: ")
+    # Numero de individuos, numero de solicitacoes
+    population = generatePopulation(int(objects), int(requests))
     # population = list()
     # request = list()
     # singleObject = list()
@@ -102,11 +113,7 @@ def main():
     # population.append(request)
 
     finalPopulation = convertPopulationIntoArray(population)
-    # saveListIntoTXTFile(finalPopulation)
+    saveListIntoTXTFile(finalPopulation)
     print(repr(finalPopulation))
-    print(repr(population[0]))
-    print(repr(population[0][0]))
-    print(repr(population[0][0][0]))
-
 # ==============================================================================
 main()
