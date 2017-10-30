@@ -21,17 +21,16 @@
 #define HORIZON_SIZE 50
 
 // Numero de geracoes maximas
-#define MAX_GENERATION 1000
+#define MAX_GENERATION 10000
 
 // Numero de individuos gerados a cada geracao
 #define NEW_INDIVIDUALS 5
 
-#define CROSSOVER_RATE 80.0
+#define CROSSOVER_RATE 10.00
 
 // #define INPUT_FILE "POPULACAO_INICIAL - CASO OTIMO.txt"
 // #define INPUT_FILE "POPULACAO_INICIAL.txt"
-// #define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
-#define INPUT_FILE "POPULACAO2.txt"
-// #define INPUT_FILE "input_gerado.txt"
+#define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
+// #define INPUT_FILE "POPULACAO.txt"
 
 #define PRINTING_FLAG 0

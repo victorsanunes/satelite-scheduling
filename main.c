@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "matriz.h"
 #include <time.h>
 #include "globals.h"
@@ -39,7 +40,7 @@ void calculateSignalQualityValues(double *array, int length){
 
 int main(int argc, char * argv[]){
     srand(1);
-    char filename[120];
+    char *filename;
 	int size, i, j, l;
 	int k = 0;
 	int window1_size = 30;
@@ -47,7 +48,8 @@ int main(int argc, char * argv[]){
     double sum;
     double sum_aux = 0.0;
     individualSummary *individuals = malloc(MAX_INDIVIDUALS * sizeof(individualSummary));
-    FILE *f = fopen("RESULTS_LOG.txt", "w");
+    FILE *f = fopen("resultados/aptidao.txt", "w");
+    // FILE *f = fopen("resultados/10000_GERACOES/crossover_10.txt", "w");
     // ========================= LEITURA DOS DADOS =============================
 	int *dataset = read_ints(&size);
 
@@ -78,11 +80,6 @@ int main(int argc, char * argv[]){
     initializeMatrix(new_population, NEW_INDIVIDUALS * LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
     fillMatrixWithValues(population, MAX_LINES, REQUESTS, dataset);
 
-    if(PRINTING_FLAG){
-        printf("\n\n====POPULATION====\n\n");
-    	printIntMatrix(population, MAX_LINES, REQUESTS, stdout);
-    }
-
     // ==================== CALCULA OS VALORES DE FITNESS ======================
     double *fitnessValues = malloc(MAX_INDIVIDUALS * sizeof(double));
     calculateFitnessValues(fitnessValues, MAX_INDIVIDUALS,
@@ -99,12 +96,23 @@ int main(int argc, char * argv[]){
     // =========== COPIA OS VALORES ORDENADOS PARA O VETOR DE APTIDAO ==========
     copySortedFitnessValues(fitnessValues, individuals, MAX_INDIVIDUALS);
 
-    // ===================== IMPRIME VETOR DE APTIDOES =========================
+    // ============== IMPRIME VETOR DE APTIDOES NO ARQUIVO =====================
     fprintf(f, "\n================== PRIMEIROS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, f);
 
     fprintf(stdout, "\n================== PRIMEIROS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, stdout);
+
+    // ====================== IMPRIME POPULACAO NO ARQUIVO =====================
+    if(PRINTING_FLAG){
+        printf("\n\n====POPULATION====\n\n");
+    	printIntMatrix(population, MAX_LINES, REQUESTS, stdout);
+    }
+
+    fprintf(f, "\n=========== POPULACAO INICIAL ===========\n");
+    printIntMatrix(population, MAX_LINES, REQUESTS, f);
+
+
 
     // ============================= GERACOES ==================================
     runGenerations(MAX_GENERATION,
@@ -115,16 +123,20 @@ int main(int argc, char * argv[]){
                 individuals,
                 quality1_values, quality2_values);
 
-    // ====================== IMPRIME POPULACAO FINAL  =========================
-    // puts("====================== IMPRIME POPULACAO FINAL  ===================");
-    // printIntMatrix(population, MAX_LINES, REQUESTS);
 
     // ===================== IMPRIME VETOR DE APTIDOES =========================
     fprintf(stdout, "\n===================== NOVOS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, stdout);
 
+    // ====================== IMPRIME POPULACAO FINAL  =========================
+    puts("====================== IMPRIME POPULACAO FINAL  ===================");
+    printIntMatrix(population, MAX_LINES, REQUESTS, stdout);
+
     fprintf(f, "\n===================== NOVOS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, f);
+
+    fprintf(f, "====================== POPULACAO FINAL  ======================\n");
+    printIntMatrix(population, MAX_LINES, REQUESTS, f);
 
     printStatistics(f);
     printStatistics(stdout);

@@ -123,7 +123,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
 
     			//Checa se a proxima solicitacao esta na mesma janela ou se a
                 // estacao eh a mesma
-    			if(window == next_window || station == next_station){
+    			if(window == next_window && station == next_station){
                     // printf("mesmo janela\n");
                     // printf("request_beginning: %d\nrequest_ending: %d", request_beginning, request_ending);
                     // printf("\nnext_request_beginning: %d\nnext_request_ending: %d\n\n", next_request_beginning, next_request_ending);
@@ -131,11 +131,17 @@ void calculateFitnessValues(double *fitnessValues,int size,
                     if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
                         // printf("PUNICAO\n");
                         penaltyFlag = 1; //Sera penalizado
-                        l = columns + 1;
 
-                        // break;
+                        // Sai do for
+                        l = columns + 1;
                     }
     			}
+            }
+
+            if((request_beginning >= k_line || k_line >= request_ending) && penaltyFlag != 1){
+            // puts("POPULACAO INCOERENTE");
+                penaltyFlag = 1;
+                l = columns + 1;
             }
 
             if(penaltyFlag == 1){
@@ -295,7 +301,9 @@ void mutation(matrix originalPopulation,
             int insertionIndex){
     mutationFrequency++;
     matrix newIndividual_1 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
-    int i, j, k, request, shift;
+    int i, j, k, request, shift, option;
+    int request1, request2;
+    int aux1, aux2, aux3;
     k = individualOriginalPosition;
 
     // ===================== COPIA O INDIVIDUO ORIGINAL  =======================
@@ -306,22 +314,53 @@ void mutation(matrix originalPopulation,
         k++;
     }
 
-    // =================== SORTEIA QUAL SOLICITACAO MEXER ======================
-    request = (int)rand() % REQUESTS + 1;
+    // printf("VELHO INDIVIDUO\n");
+    // printIntMatrix(newIndividual_1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
 
-    // ====================== SORTEIA QUAL O SHIFT =============================
-    shift = (int)rand() % 2;
+    // ==================== SORTEIA QUAL OPERACAO REALIZAR =====================
+    // OPTION = 0: REALIZA O SHITF
+    // OPTION = 1: TROCA O PONTO DE MEDIO ENTRE DUAS SOLICITACOES
+    option = (int)rand() % 2;
+    if(option == 0){
+        // =================== SORTEIA QUAL SOLICITACAO MEXER ======================
+        request = (int)rand() % REQUESTS;
 
-    if(shift == 0)
-        shift = -1;
-    else
-        shift = 1;
+        // ====================== SORTEIA QUAL O SHIFT =============================
+        shift = (int)rand() % 2;
 
-    // ========================= APLICA A PERTURBACAO ==========================
-    newIndividual_1[request + 1] += shift;
-    newIndividual_1[request + 2] += shift;
-    newIndividual_1[request + 3] += shift;
+        if(shift == 0)
+            shift = -1;
+        else
+            shift = 1;
 
+        // ========================= APLICA O SHIFT ==========================
+        newIndividual_1[1][request] += shift;
+        newIndividual_1[2][request] += shift;
+        newIndividual_1[3][request] += shift;
+    }
+
+    else if(option == 1){
+        // ================= SORTEIA QUAIS SOLICITACOES TROCAR =================
+        request1 = (int)rand() % REQUESTS;
+        request2 = (int)rand() % REQUESTS;
+
+        // printf("request1: %d\nrequest2: %d", request1, request2);
+
+        aux1 = newIndividual_1[1][request1];
+        aux2 = newIndividual_1[2][request1];
+        aux3 = newIndividual_1[3][request1];
+
+        newIndividual_1[1][request1] = newIndividual_1[1][request2];
+        newIndividual_1[2][request1] = newIndividual_1[2][request2];
+        newIndividual_1[3][request1] = newIndividual_1[3][request2];
+
+        newIndividual_1[1][request2] = aux1;
+        newIndividual_1[2][request2] = aux2;
+        newIndividual_1[3][request2] = aux3;
+    }
+
+    // printf("NOVO INDIVIDUO (OPCAO: %d)\n", option);
+    // printIntMatrix(newIndividual_1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
 
     // ============= INSERE O NOVO INDIVIDUO NA POPULACAO ORIGINAL =============
     insertIndividualsInPopulation(originalPopulation,
@@ -386,6 +425,7 @@ void reproduction(int maxGeneration,
         else{
             newIndividualsCounter += 1;
             selected1 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+            // printf("Selecionado: %d\n", individualsArray[selected1].index);
             mutation(originalPopulation,
                     individualsArray[selected1].index,
                     LINES_PER_SINGLE_INDIVIDUAL, REQUESTS,
@@ -450,6 +490,9 @@ void runGenerations(int maxGeneration,
                     fitnessValues,
                     individualsArray,
                     quality1_values, quality2_values);
+
+        // printf("NOVA POPULACAO\n");
+        // printIntMatrix(originalPopulation, MAX_LINES, REQUESTS, stdout);
 
         // ============= CALCULA OS NOVOS VALORES DE APTIDAO ===================
         calculateFitnessValues(fitnessValues, MAX_INDIVIDUALS,
