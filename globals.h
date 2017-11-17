@@ -22,7 +22,6 @@
 
 // Numero de geracoes maximas
 #define MAX_GENERATION 10000
-
 // Numero de individuos gerados a cada geracao
 #define NEW_INDIVIDUALS 5
 
@@ -30,7 +29,11 @@
 
 // #define INPUT_FILE "POPULACAO_INICIAL - CASO OTIMO.txt"
 // #define INPUT_FILE "POPULACAO_INICIAL.txt"
-#define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
-// #define INPUT_FILE "POPULACAO.txt"
+// #define INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
+// #define INPUT_FILE "SUPER_POPULACAO.txt"
+#define INPUT_FILE "POPULACAO.txt"
 
 #define PRINTING_FLAG 0
+
+FILE *f_fit;
+FILE *f_csv;

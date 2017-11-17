@@ -87,6 +87,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
     int window_beginning, window_ending;
 	int next_window, next_request_beginning, next_request_ending;
     int station, next_station;
+    int satelite, next_satelite;
     int request_size;
     int penaltyFlag = 0;
 
@@ -106,6 +107,9 @@ void calculateFitnessValues(double *fitnessValues,int size,
 		    request_beginning     = population[i + 2][j];
             request_ending        = population[i + 3][j];
             station               = population[i + 4][j];
+            window_beginning      = population[i + 5][j];
+            window_ending         = population[i + 6][j];
+            // satelite              = population[i + 5][j];
             request_size = request_ending - request_beginning;
 
             //Checa a restrição de não preemptivadade: não pode ter mais de uma
@@ -116,29 +120,54 @@ void calculateFitnessValues(double *fitnessValues,int size,
                 next_request_beginning = population[i + 2][l];
                 next_request_ending = population[i + 3][l];
                 next_station = population[i + 4][l];
+                // next_satelite = population[i + 5][l];
                 // printf("Proxima comeco: %d\n", next_request_beginning);
                 // printf("Estacao atual: %d\n", station);
                 // printf("Proxima estacao: %d\n", next_station);
                 // getchar();
+                if(request_beginning >= window_beginning
+                        && request_ending <= window_ending){
+        			//Checa se a proxima solicitacao esta na mesma janela ou se a
+                    // estacao eh a mesma
+        			if(window == next_window){
+                        // puts("MESMA JANELA");
+                        // printf("mesmo janela\n");
+                        // printf("request_beginning: %d\nrequest_ending: %d", request_beginning, request_ending);
+                        // printf("\nnext_request_beginning: %d\nnext_request_ending: %d\n\n", next_request_beginning, next_request_ending);
+                        // getchar();
+                        if((request_ending >= next_request_beginning - 1) &&
+                                (request_beginning <= next_request_ending + 1)){
+                            // printf("PUNICAO\n");
+                            penaltyFlag = 1; //Sera penalizado
 
-    			//Checa se a proxima solicitacao esta na mesma janela ou se a
-                // estacao eh a mesma
-    			if(window == next_window && station == next_station){
-                    // printf("mesmo janela\n");
-                    // printf("request_beginning: %d\nrequest_ending: %d", request_beginning, request_ending);
-                    // printf("\nnext_request_beginning: %d\nnext_request_ending: %d\n\n", next_request_beginning, next_request_ending);
-                    // getchar();
-                    if((request_ending >= next_request_beginning - 1) && (request_beginning <= next_request_ending + 1)){
-                        // printf("PUNICAO\n");
-                        penaltyFlag = 1; //Sera penalizado
+                            // Sai do for
+                            l = columns + 1;
+                        }
+        			}
+                    else{
+                        if(station == next_station){
+                            // puts("MESMA ESTACAO");
+                            if((request_ending >= next_request_beginning - 1) &&
+                                    (request_beginning <= next_request_ending + 1)){
+                                // printf("PUNICAO\n");
+                                penaltyFlag = 1; //Sera penalizado
 
-                        // Sai do for
-                        l = columns + 1;
+                                // Sai do for
+                                l = columns + 1;
+                            }
+                        }
                     }
-    			}
+                }
+
+                else{
+                    penaltyFlag = 1;
+                    l = columns + 1;
+                }
+
             }
 
-            if((request_beginning >= k_line || k_line >= request_ending) && penaltyFlag != 1){
+            if((k_line + window_beginning -1 >= window_ending ||
+                    k_line + window_ending -1 <= window_beginning) && penaltyFlag != 1){
             // puts("POPULACAO INCOERENTE");
                 penaltyFlag = 1;
                 l = columns + 1;
@@ -152,8 +181,8 @@ void calculateFitnessValues(double *fitnessValues,int size,
             }
 
             else {
-                window_beginning 	= population[i + 5][j];
-                window_ending 		= population[i + 6][j];
+                // window_beginning 	= population[i + 5][j];
+                // window_ending 		= population[i + 6][j];
                 fitnessValues[k]    += fitnessFunction(	quality1_values,
                                                         quality2_values,
                                                         window, k_line,
@@ -210,8 +239,8 @@ int rouletteWheelSelection(double *roulette, int length, individualSummary *indi
     }
 
     indexIndividual = indexSelected;
-    if(PRINTING_FLAG)
-        printf("\n\nResultado da roleta: %d\n", indexSelected);
+    // if(PRINTING_FLAG)
+        // printf("\n\nResultado da roleta: %d\n", indexSelected);
     return indexSelected;
 
 }
@@ -239,6 +268,11 @@ void crossover(matrix originalPopulation, matrix newPopulation,
     matrix newIndividual_1 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
     matrix newIndividual_2 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
 
+    matrix F1 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
+    matrix P1 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
+    matrix F2 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
+    matrix P2 = alocateMatrix(LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
+
     int matrixIndex_1_aux = matrixIndex_1;
     int matrixIndex_2_aux = matrixIndex_2;
 
@@ -246,50 +280,70 @@ void crossover(matrix originalPopulation, matrix newPopulation,
     int i, j;
     for(i = 0; i < LINES_PER_SINGLE_INDIVIDUAL; i++){
         for(j = 0; j < REQUESTS; j++){
-            newIndividual_1[i][j] = originalPopulation[matrixIndex_1_aux][j];
-            newIndividual_2[i][j] = originalPopulation[matrixIndex_2_aux][j];
+            P1[i][j] = originalPopulation[matrixIndex_1_aux][j];
+            P2[i][j] = originalPopulation[matrixIndex_2_aux][j];
         }
         matrixIndex_1_aux++;
         matrixIndex_2_aux++;
     }
 
-    if(PRINTING_FLAG){
-        puts("ANTES DO CROSSOVER");
-        puts("INDIVIDUO 1");
-        printIntMatrix(newIndividual_1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
-
-        puts("INDIVIDUO 2");
-        printIntMatrix(newIndividual_2, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
-    }
+    // if(PRINTING_FLAG){
+        // puts("ANTES DO CROSSOVER");
+        // puts("INDIVIDUO 1");
+        // printIntMatrix(P1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
+        //
+        // puts("INDIVIDUO 2");
+        // printIntMatrix(P2, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
+    // }
 
 
     int request1, request2;
-    request1 = (int)rand() % REQUESTS + 1;
-    request2 = (int)rand() % REQUESTS + 1;
-    request1 = 2;
-    request2 = 3;
-
-    // ===== CRUZA AS COLUNAS 2 E 3 DE NEWINDIVIDUAL_1 E NEWINDIVIDUAL_2 =======
-    crossMatrixSegment( newIndividual_1, request1, request2,
-                        newIndividual_2, request1, request2,
-                        LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
-    if(PRINTING_FLAG){
-        puts("DEPOIS DO CROSSOVER");
-        puts("INDIVIDUO 1");
-        printIntMatrix(newIndividual_1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
-
-        puts("INDIVIDUO 2");
-        printIntMatrix(newIndividual_2, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
+    request1 = (int)rand() % REQUESTS;
+    // // request2 = (int)rand() % REQUESTS + 1;
+    // // request1 = 2;
+    // // request2 = 3;
+    //
+    // // ===== CRUZA AS COLUNAS 2 E 3 DE NEWINDIVIDUAL_1 E NEWINDIVIDUAL_2 =======
+    // // crossMatrixSegment( newIndividual_1, 0, 1,
+    // //                     newIndividual_2, 1, 3,
+    // //                     LINES_PER_SINGLE_INDIVIDUAL, REQUESTS);
+    int c, l, p;
+    p = request1;
+    for(c = 0; c <= p; c++){
+    	for(l = 0; l < 7; l++){
+    		F1[l][c] = P1[l][c];
+    		F2[l][c] = P2[l][c];
+    	}
     }
-    // =========== INSERE OS NOVOS INDIVIDUOS NA POPULACAO ORIGINAL ============
+
+
+    for(c = (p+1); c < 4; c++){
+    	for(l = 0; l < 7; l++){
+    		F1[l][c] = P2[l][c];
+    		F2[l][c] = P1[l][c];
+    	}
+    }
+
+
+    // if(PRINTING_FLAG){
+        // puts("DEPOIS DO CROSSOVER");
+        // puts("INDIVIDUO 1");
+        // printIntMatrix(F1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
+        //
+        // puts("INDIVIDUO 2");
+        // printIntMatrix(F2, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
+        // getchar();
+    // // }
+    // printf("selected1_matrixInsertionPosition: %d\nselected2_matrixInsertionPosition: %d", selected1_matrixInsertionPosition, selected2_matrixInsertionPosition);
+    // // =========== INSERE OS NOVOS INDIVIDUOS NA POPULACAO ORIGINAL ============
     insertIndividualsInPopulation(originalPopulation,
-                                    newIndividual_1,
+                                    F1,
                                     selected1_matrixInsertionPosition,
                                     LINES_PER_SINGLE_INDIVIDUAL,
                                     REQUESTS);
 
     insertIndividualsInPopulation(originalPopulation,
-                                    newIndividual_2,
+                                    F2,
                                     selected2_matrixInsertionPosition,
                                     LINES_PER_SINGLE_INDIVIDUAL,
                                     REQUESTS);
@@ -321,7 +375,8 @@ void mutation(matrix originalPopulation,
     // OPTION = 0: REALIZA O SHITF
     // OPTION = 1: TROCA O PONTO DE MEDIO ENTRE DUAS SOLICITACOES
     option = (int)rand() % 2;
-    if(option == 0){
+    int deslocation;
+    // if(option == 0){
         // =================== SORTEIA QUAL SOLICITACAO MEXER ======================
         request = (int)rand() % REQUESTS;
 
@@ -329,39 +384,39 @@ void mutation(matrix originalPopulation,
         shift = (int)rand() % 2;
 
         if(shift == 0)
-            shift = -1;
+            deslocation = -1;
         else
-            shift = 1;
+            deslocation = 1;
 
         // ========================= APLICA O SHIFT ==========================
-        newIndividual_1[1][request] += shift;
-        newIndividual_1[2][request] += shift;
-        newIndividual_1[3][request] += shift;
-    }
+        newIndividual_1[1][request] += deslocation;
+        newIndividual_1[2][request] += deslocation;
+        newIndividual_1[3][request] += deslocation;
+    // }
 
-    else if(option == 1){
-        // ================= SORTEIA QUAIS SOLICITACOES TROCAR =================
-        request1 = (int)rand() % REQUESTS;
-        request2 = (int)rand() % REQUESTS;
-
-        // printf("request1: %d\nrequest2: %d", request1, request2);
-
-        aux1 = newIndividual_1[1][request1];
-        aux2 = newIndividual_1[2][request1];
-        aux3 = newIndividual_1[3][request1];
-
-        newIndividual_1[1][request1] = newIndividual_1[1][request2];
-        newIndividual_1[2][request1] = newIndividual_1[2][request2];
-        newIndividual_1[3][request1] = newIndividual_1[3][request2];
-
-        newIndividual_1[1][request2] = aux1;
-        newIndividual_1[2][request2] = aux2;
-        newIndividual_1[3][request2] = aux3;
-    }
+    // else if(option == 1){
+    //     // ================= SORTEIA QUAIS SOLICITACOES TROCAR =================
+        // request1 = (int)rand() % REQUESTS;
+        // request2 = (int)rand() % REQUESTS;
+        //
+        // // printf("request1: %d\nrequest2: %d", request1, request2);
+        //
+        // aux1 = newIndividual_1[1][request1];
+        // aux2 = newIndividual_1[2][request1];
+        // aux3 = newIndividual_1[3][request1];
+        //
+        // newIndividual_1[1][request1] = newIndividual_1[1][request2];
+        // newIndividual_1[2][request1] = newIndividual_1[2][request2];
+        // newIndividual_1[3][request1] = newIndividual_1[3][request2];
+        //
+        // newIndividual_1[1][request2] = aux1;
+        // newIndividual_1[2][request2] = aux2;
+        // newIndividual_1[3][request2] = aux3;
+    // }
 
     // printf("NOVO INDIVIDUO (OPCAO: %d)\n", option);
     // printIntMatrix(newIndividual_1, LINES_PER_SINGLE_INDIVIDUAL, REQUESTS, stdout);
-
+    // getchar();
     // ============= INSERE O NOVO INDIVIDUO NA POPULACAO ORIGINAL =============
     insertIndividualsInPopulation(originalPopulation,
                                     newIndividual_1,
@@ -397,6 +452,7 @@ void reproduction(int maxGeneration,
         // ======================== CROSSOVER ==================================
         if(probabilityValue <= crossoverRate){
             if(newIndividualsCounter == newIndividuals-1){
+                // puts("B");
                 newIndividualsCounter += 1;
                 selected1 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
                 selected2 = selected1;
@@ -405,6 +461,9 @@ void reproduction(int maxGeneration,
                 newIndividualsCounter += 2;
                 selected1 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
                 selected2 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+                // while(selected1 == selected2){
+                //     selected2 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+                // }
             }
             if(PRINTING_FLAG){
                 puts("SELECIONADOS");
@@ -508,7 +567,56 @@ void runGenerations(int maxGeneration,
 
         // =========== COPIA OS VALORES ORDENADOS PARA O VETOR DE APTIDAO ==========
         copySortedFitnessValues(fitnessValues, individualsArray, MAX_INDIVIDUALS);
+
+        saveFitnessValues(f_fit, individualsArray, MAX_INDIVIDUALS);
+        saveFitnessValuesToCSV(f_csv, individualsArray, MAX_INDIVIDUALS);
+
     }
+}
+
+void saveFitnessValues(FILE *f, individualSummary *ind, int length){
+    int i;
+    //fprintf(f, "{\"fitness\":{");
+    fprintf(f, "{");
+
+    for(i = 0; i < length; i++){
+        if(i < length-1){
+            fprintf(f, "%i: %.2f, ",ind[i].index/LINES_PER_SINGLE_INDIVIDUAL,
+                                    ind[i].fitnessValue);
+        }
+        else{
+            fprintf(f, "%i: %.2f",ind[i].index/LINES_PER_SINGLE_INDIVIDUAL,
+                                    ind[i].fitnessValue);
+        }
+    }
+    fprintf(f, "}\n");
+}
+
+void saveFitnessValuesToCSV(FILE *f, individualSummary *ind, int length){
+    int i, j;
+    double array[length];
+    //fprintf(f, "{\"fitness\":{");
+
+    // ======================== IMPRIME O HEADER ==============================
+    // for(i = 0; i < length; i++){
+    //     fprintf(f, "%d", i);
+    //     if(i < length-1){
+    //         fprintf(f, ",");
+    //     }
+    // }
+    // fprintf(f, "\n");
+
+    // ================= COPIA OS VALORES NAS ORDENS CERTAS ====================
+    for(i = 0; i < length; i++){
+        array[ind[i].index/LINES_PER_SINGLE_INDIVIDUAL] = ind[i].fitnessValue;
+    }
+    for(i = 0; i < length; i++){
+        fprintf(f, "%.2f", array[i]);
+        if(i < length-1){
+            fprintf(f, ",");
+        }
+    }
+    fprintf(f, "\n");
 }
 
 void printStatistics(FILE *f){

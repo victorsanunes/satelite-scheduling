@@ -48,7 +48,10 @@ int main(int argc, char * argv[]){
     double sum;
     double sum_aux = 0.0;
     individualSummary *individuals = malloc(MAX_INDIVIDUALS * sizeof(individualSummary));
-    FILE *f = fopen("resultados/aptidao.txt", "w");
+    FILE *f = fopen("resultados/1000_GERACOES/crossover_25.txt", "w");
+    f_fit = fopen("fitness.txt", "w");
+    f_csv = fopen("fitness_csv.csv", "w");
+
     // FILE *f = fopen("resultados/10000_GERACOES/crossover_10.txt", "w");
     // ========================= LEITURA DOS DADOS =============================
 	int *dataset = read_ints(&size);
@@ -123,7 +126,6 @@ int main(int argc, char * argv[]){
                 individuals,
                 quality1_values, quality2_values);
 
-
     // ===================== IMPRIME VETOR DE APTIDOES =========================
     fprintf(stdout, "\n===================== NOVOS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, stdout);
@@ -143,4 +145,6 @@ int main(int argc, char * argv[]){
     printAlgorithmInformations(f);
     printAlgorithmInformations(stdout);
     fclose(f);
+    fclose(f_fit);
+    fclose(f_csv);
 }

@@ -97,3 +97,8 @@ void insertindividualsInPopulation(matrix population, matrix individuals,
 void imprimeContador(individualSummary *individualss);
 void printStatistics();
 */
+
+
+void saveFitnessValues(FILE *f, individualSummary *i, int length);
+
+void saveFitnessValuesToCSV(FILE *f, individualSummary *ind, int length);
