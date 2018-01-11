@@ -1,0 +1,31 @@
+
+================== PRIMEIROS VALORES DE APTIDOES ===================
+individuo[0]=0.00
+individuo[1]=0.00
+individuo[2]=0.00
+individuo[3]=0.00
+individuo[4]=0.00
+individuo[5]=0.00
+individuo[6]=0.00
+individuo[7]=0.00
+individuo[8]=0.00
+individuo[9]=0.00
+individuo[10]=0.00
+individuo[11]=0.00
+individuo[12]=0.00
+individuo[13]=0.00
+individuo[14]=0.00
+individuo[15]=0.00
+individuo[16]=0.00
+individuo[17]=0.00
+individuo[18]=0.00
+individuo[19]=0.00
+
+======== STATISTICS ==========
+CROSSOVER: 195
+MUTACAO: 1714
+
+======== DADOS DO ALGORITMO ==========
+CROSSOVER_RATE: 10.00
+GERACOES: 1000
+NOVOS INDIVIDUOS POR GERACAO: 2
