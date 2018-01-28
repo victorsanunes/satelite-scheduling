@@ -538,10 +538,12 @@ void runGenerations(int maxGeneration,
                     individualSummary *individualsArray,
                     double *quality1_values, double *quality2_values){
 
+    firstBestSolution = -1;
     int generation;
     for(generation = 0; generation < MAX_GENERATION; generation++){
 
         // ================= CHAMA A REPRODUCAO ================
+        time_begin += clock();
         reproduction(maxGeneration,
                     originalPopulation,
                     newPopulation,
@@ -549,7 +551,7 @@ void runGenerations(int maxGeneration,
                     fitnessValues,
                     individualsArray,
                     quality1_values, quality2_values);
-
+        time_end += clock();
         // printf("NOVA POPULACAO\n");
         // printIntMatrix(originalPopulation, MAX_LINES, REQUESTS, stdout);
 
@@ -565,11 +567,16 @@ void runGenerations(int maxGeneration,
         // ================= ORDENA INDIVIDUOS PELO VALOR DE APTIDAO ===============
         sortIndividualsByFitnessValues(individualsArray, MAX_INDIVIDUALS);
 
+        if(firstBestSolution == -1 &&
+            individualsArray[MAX_INDIVIDUALS-1].fitnessValue >= (0.9 * 2.94) ){
+            firstBestSolution = generation;
+            printf("Individuo=%d\n", individualsArray[MAX_INDIVIDUALS-1].index/LINES_PER_SINGLE_INDIVIDUAL);
+        }
         // =========== COPIA OS VALORES ORDENADOS PARA O VETOR DE APTIDAO ==========
         copySortedFitnessValues(fitnessValues, individualsArray, MAX_INDIVIDUALS);
-
-        saveFitnessValues(f_fit, individualsArray, MAX_INDIVIDUALS);
-        saveFitnessValuesToCSV(f_csv, individualsArray, MAX_INDIVIDUALS);
+        fprintf(f_fit, "%.2f\n", individualsArray[MAX_INDIVIDUALS-1].fitnessValue);
+        //saveFitnessValues(f_fit, individualsArray, MAX_INDIVIDUALS);
+        //saveFitnessValuesToCSV(f_csv, individualsArray, MAX_INDIVIDUALS);
 
     }
 }
@@ -623,6 +630,8 @@ void printStatistics(FILE *f){
     fprintf(f, "\n======== STATISTICS ==========\n");
     fprintf(f, "CROSSOVER: %d\n", crossoverFrequency);
     fprintf(f, "MUTACAO: %d\n", mutationFrequency);
+    fprintf(f, "Primeiro otimo: %d\n", firstBestSolution);
+    fprintf(f, "Tempo: %.2f\n", executionTime/CLOCKS_PER_SEC);
 }
 
 void printAlgorithmInformations(FILE *f){

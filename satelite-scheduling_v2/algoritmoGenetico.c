@@ -41,7 +41,8 @@ void printRequestArray(request *req, int requestNumber){
 void printPopulation(individual *population, int size){
     int i;
     for(i = 0; i < size; i++){
-        printf("Individuo: %d\n", population[i].index);
+        printf("Individuo : \t%d\n", population[i].index);
+        printf("Fitness: \t%.2f\n\n", population[i].fitness);
         printRequestArray(population[i].req, REQUESTS);
         printf("=============================\n");
     }
@@ -65,8 +66,50 @@ void calculateSignalQualityValues(double *array, int length){
     }
 }
 
+int getWindow(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[WINDOW];
+    return window;
+}
+
+int getRequestBeginning(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[REQUEST_BEGINNING];
+    return window;
+}
+
+int getRequestEnding(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[REQUEST_ENDING];
+    return window;
+}
+
+int getWindowEnding(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[WINDOW_ENDING];
+    return window;
+}
+
+int getWindowBeginning(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[WINDOW_BEGINNING];
+    return window;
+}
+
+int getStation(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[STATION];
+    return window;
+}
+
+int getKLine(individual *ind, int individualID, int requestID){
+    int window = -1;
+    window = ind[individualID].req[requestID].features[KLINE];
+    return window;
+}
+
 void calculateFitnessValues(double *fitnessValues,int size,
-                            individual population, int lines, int columns,
+                            individual *population, int lines, int columns,
                             double *quality1_values,
                             double *quality2_values){
     int i, j, k, l;
@@ -85,18 +128,19 @@ void calculateFitnessValues(double *fitnessValues,int size,
     }
 
     i = 0;
+
     //Preenche o vetor com os valores da funcao de aptidao
 	for(k = 0; k < size; k++){
 
         //Obtem as informacoes de cada solicitacao
 		for(j = 0; j < columns; j++){
-		    window                = population[i][j];
-		    k_line                = population[i + 1][j];
-		    request_beginning     = population[i + 2][j];
-            request_ending        = population[i + 3][j];
-            station               = population[i + 4][j];
-            window_beginning      = population[i + 5][j];
-            window_ending         = population[i + 6][j];
+		    window                = getWindow(population, k, j);
+		    k_line                = getKLine(population, k, j);
+		    request_beginning     = getRequestBeginning(population, k, j);
+            request_ending        = getRequestEnding(population, k, j);
+            station               = getStation(population, k, j);
+            window_beginning      = getWindowBeginning(population, k, j);
+            window_ending         = getWindowEnding(population, k, j);
             // satelite              = population[i + 5][j];
             request_size = request_ending - request_beginning;
 
@@ -104,10 +148,10 @@ void calculateFitnessValues(double *fitnessValues,int size,
             //solicitacao ao mesmo tempo para a mesma estacao.
             //Faz a checagem da solicitacao atual com todas as outras
             for(l = j + 1; l < columns; l++){
-                next_window = population[i][l];
-                next_request_beginning = population[i + 2][l];
-                next_request_ending = population[i + 3][l];
-                next_station = population[i + 4][l];
+                next_window = getWindow(population, k, l);
+                next_request_beginning = getRequestBeginning(population, k, l);
+                next_request_ending = getRequestEnding(population, k, l);
+                next_station = getStation(population, k, l);
                 // next_satelite = population[i + 5][l];
                 // printf("Proxima comeco: %d\n", next_request_beginning);
                 // printf("Estacao atual: %d\n", station);
@@ -183,6 +227,7 @@ void calculateFitnessValues(double *fitnessValues,int size,
         }
 
 		i = i + LINES_PER_SINGLE_INDIVIDUAL;
+        population[k].fitness = fitnessValues[k];
     }
 }
 
@@ -210,6 +255,133 @@ double fitnessFunction(	double *quality1,
 			value += weight * quality2[k_line - 1];
 	}
 	return value;
+}
+
+void swapIndividuals(individual *population, int a, int b){
+    individual aux;
+    aux = population[a];
+    population[a] = population[b];
+    population[b] = aux;
+}
+
+void sortPopulation(individual *population, int size){
+    int i, j;
+    for(i = 0; i < size; i++){
+        for(j = i + 1; j < size; j++){
+            if(population[i].fitness > population[j].fitness){
+                swapIndividuals(population, i, j);
+            }
+        }
+    }
+}
+
+// Realiza o crossover ou mutacao e atualiza a populacao
+void reproduction(int maxGeneration,
+                    individual *originalPopulation,
+                    individual *newPopulation,
+                    int newIndividuals,
+                    double *fitnessValues,
+                    individualSummary *individualsArray,
+                    double *quality1_values, double *quality2_values){
+
+    // ======================== MONTA A ROLETA  ==========================
+    // Roleta tem o tamanho da populacao
+    double roulette[MAX_INDIVIDUALS];
+    fillRoulette(roulette, fitnessValues, MAX_INDIVIDUALS);
+
+    // ===================== GERA NOVOS INDIVIDUOS =================
+    int newIndividualsCounter, selected1, selected2, matrixIndex;
+    double probabilityValue;
+    double crossoverRate = CROSSOVER_RATE;
+    matrixIndex = 0;
+
+    for(newIndividualsCounter = 0; newIndividualsCounter < newIndividuals; ){
+        probabilityValue = rand() % 100 + 1;
+
+        // ======================== CROSSOVER ==================================
+        if(probabilityValue <= crossoverRate){
+            if(newIndividualsCounter == newIndividuals-1){
+                // puts("B");
+                newIndividualsCounter += 1;
+                selected1 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+                selected2 = selected1;
+            }
+            else{
+                newIndividualsCounter += 2;
+                selected1 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+                selected2 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+                // while(selected1 == selected2){
+                //     selected2 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+                // }
+            }
+            if(PRINTING_FLAG){
+                puts("SELECIONADOS");
+                printf("%d e %d\n", selected1, selected2);
+            }
+
+            // ================ APLICA O OPERADOR DE CROSSOVER  ================
+            crossover(originalPopulation, newPopulation,
+                            individualsArray[selected1].index,
+                            individualsArray[selected2].index,
+                            individualsArray[matrixIndex].index,
+                            individualsArray[matrixIndex+1].index);
+            matrixIndex += 2;
+
+
+        }
+        // ========================= MUTACAO ===================================
+        else{
+            newIndividualsCounter += 1;
+            selected1 = rouletteWheelSelection(roulette, MAX_INDIVIDUALS, individualsArray);
+            // printf("Selecionado: %d\n", individualsArray[selected1].index);
+            mutation(originalPopulation,
+                    individualsArray[selected1].index,
+                    LINES_PER_SINGLE_INDIVIDUAL, REQUESTS,
+                    individualsArray[matrixIndex].index);
+            matrixIndex++;
+        }
+    }
+}
+
+void runGenerations(int maxGeneration,
+                    individual *originalPopulation,
+                    individual *newPopulation,
+                    double *quality1_values, double *quality2_values){
+
+    int generation;
+    for(generation = 0; generation < MAX_GENERATION; generation++){
+
+        // ================= CHAMA A REPRODUCAO ================
+        reproduction(maxGeneration,
+                    originalPopulation,
+                    newPopulation,
+                    newIndividuals,
+                    fitnessValues,
+                    individualsArray,
+                    quality1_values, quality2_values);
+
+        // printf("NOVA POPULACAO\n");
+        // printIntMatrix(originalPopulation, MAX_LINES, REQUESTS, stdout);
+
+        // ============= CALCULA OS NOVOS VALORES DE APTIDAO ===================
+        // calculateFitnessValues(fitnessValues, MAX_INDIVIDUALS,
+        //                         originalPopulation, MAX_INDIVIDUALS, REQUESTS,
+        //                         quality1_values,
+        //                         quality2_values);
+        //
+        // // =========== COPIA VALORES DE APTIDAO PARA ESTRUTURA AUXILIAR ============
+        // copyFitnessValuesToIndividualStructure(fitnessValues, individualsArray, MAX_INDIVIDUALS);
+        //
+        // // ================= ORDENA INDIVIDUOS PELO VALOR DE APTIDAO ===============
+        // sortIndividualsByFitnessValues(individualsArray, MAX_INDIVIDUALS);
+        //
+        // // =========== COPIA OS VALORES ORDENADOS PARA O VETOR DE APTIDAO ==========
+        // copySortedFitnessValues(fitnessValues, individualsArray, MAX_INDIVIDUALS);
+        //
+        // saveFitnessValues(f_fit, individualsArray, MAX_INDIVIDUALS);
+        // saveFitnessValuesToCSV(f_csv, individualsArray, MAX_INDIVIDUALS);
+
+    }
 }
 //======================================================================
 /*void printIndividualSummary(individualSummary *individuals, int length, FILE *f){

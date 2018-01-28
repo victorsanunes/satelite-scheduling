@@ -48,11 +48,10 @@ int main(int argc, char * argv[]){
     double sum;
     double sum_aux = 0.0;
     individualSummary *individuals = malloc(MAX_INDIVIDUALS * sizeof(individualSummary));
-    FILE *f = fopen("resultados/1000_GERACOES/crossover_25.txt", "w");
-    f_fit = fopen("fitness.txt", "w");
+    FILE *f = fopen("resultados/10000_GERACOES/crossover_10_3.txt", "w");
+    f_fit = fopen("values_10.txt", "w");
     f_csv = fopen("fitness_csv.csv", "w");
 
-    // FILE *f = fopen("resultados/10000_GERACOES/crossover_10.txt", "w");
     // ========================= LEITURA DOS DADOS =============================
 	int *dataset = read_ints(&size);
 
@@ -116,7 +115,7 @@ int main(int argc, char * argv[]){
     printIntMatrix(population, MAX_LINES, REQUESTS, f);
 
 
-
+    // time_begin = clock();
     // ============================= GERACOES ==================================
     runGenerations(MAX_GENERATION,
                 population,
@@ -125,14 +124,15 @@ int main(int argc, char * argv[]){
                 fitnessValues,
                 individuals,
                 quality1_values, quality2_values);
-
+    // time_end = clock();
+    executionTime = time_end - time_begin;
     // ===================== IMPRIME VETOR DE APTIDOES =========================
     fprintf(stdout, "\n===================== NOVOS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, stdout);
 
     // ====================== IMPRIME POPULACAO FINAL  =========================
-    puts("====================== IMPRIME POPULACAO FINAL  ===================");
-    printIntMatrix(population, MAX_LINES, REQUESTS, stdout);
+    // puts("====================== IMPRIME POPULACAO FINAL  ===================");
+    // printIntMatrix(population, MAX_LINES, REQUESTS, stdout);
 
     fprintf(f, "\n===================== NOVOS VALORES DE APTIDOES ===================\n");
     printIndividualSummary(individuals, MAX_INDIVIDUALS, f);

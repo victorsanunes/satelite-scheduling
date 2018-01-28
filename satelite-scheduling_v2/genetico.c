@@ -72,6 +72,9 @@ void main(){
     // ========================= LEITURA DOS DADOS =============================
     int *dataset = read_ints(&size);
     individual *population = createPopulationArray(MAX_INDIVIDUALS, REQUESTS, dataset);
+    int *emptyArray = createEmptyIntArray(NEW_INDIVIDUALS * LINES_PER_SINGLE_INDIVIDUAL * REQUESTS);
+    individual *aux_population = createPopulationArray(NEW_INDIVIDUALS, REQUESTS, emptyArray);
+    free(emptyArray);
     if(imprimePopulacaoInicial)
         printPopulation(population, MAX_INDIVIDUALS);
 
@@ -98,5 +101,12 @@ void main(){
                             quality1_values,
                             quality2_values);
 
+    // ================ ORDENA POPULACAO PELO VALOR DE FITNESS =================
+    sortPopulation(population, MAX_INDIVIDUALS);
 
+    // =============================== GERACOES ================================
+    runGenerations(MAX_GENERATION,
+                population,
+                aux_population,
+                quality1_values, quality2_values);
 }

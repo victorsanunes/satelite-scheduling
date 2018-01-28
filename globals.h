@@ -37,3 +37,7 @@
 
 FILE *f_fit;
 FILE *f_csv;
+
+int firstBestSolution;
+clock_t time_begin, time_end;
+double executionTime;

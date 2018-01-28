@@ -41,3 +41,23 @@ void printDoubleArray(double *array, int size){
         }
     printf("\n");
 }
+
+double *createEmptyDoubleArray(int length){
+    int i;
+    double *array = malloc(length * sizeof(double));
+    for(i = 0; i < length; i++){
+        array[i] = 0.0;
+    }
+
+    return array;
+}
+
+int *createEmptyIntArray(int length){
+    int i;
+    int *array = malloc(length * sizeof(int));
+    for(i = 0; i < length; i++){
+        array[i] = 0.0;
+    }
+
+    return array;
+}

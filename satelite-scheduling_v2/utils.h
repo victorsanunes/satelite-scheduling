@@ -5,3 +5,5 @@
 int *read_ints(int *size);
 double truncateValue(int numerador, int denominador);
 void printDoubleArray(double *array, int size);
+double *createEmptyDoubleArray(int length);
+int *createEmptyIntArray(int length);

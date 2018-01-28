@@ -2,6 +2,14 @@
 
 #define MAX_SIZE 1000
 
+#define WINDOW 0
+#define KLINE 1
+#define REQUEST_BEGINNING 2
+#define REQUEST_ENDING 3
+#define STATION 4
+#define WINDOW_BEGINNING 5
+#define WINDOW_ENDING 6
+
 //Quantidade maxima de individuos iniciais
 #define MAX_INDIVIDUALS 20
 //Numero de solicitacoes

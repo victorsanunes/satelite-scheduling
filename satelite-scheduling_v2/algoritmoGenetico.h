@@ -29,7 +29,7 @@ void printPopulation(individual *population, int size);
 double signalQualityValue(int windowSize, int k);
 void calculateSignalQualityValues(double *array, int length);
 void calculateFitnessValues(double *fitnessValues,int size,
-                            individual population, int lines, int columns,
+                            individual *population, int lines, int columns,
                             double *quality1_values,
                             double *quality2_values);
 
@@ -41,4 +41,18 @@ double fitnessFunction(	double *quality1,
 						int request_ending,
 						int window_beginning,
 						int window_ending);
+
+int getWindow(individual *ind, int individualID, int requestID);
+int getWindowBeginning(individual *ind, int individualID, int requestID);
+int getWindowEnding(individual *ind, int individualID, int requestID);
+int getKLine(individual *ind, int individualID, int requestID);
+int getRequestBeginning(individual *ind, int individualID, int requestID);
+int getRequestEndingw(individual *ind, int individualID, int requestID);
+int getStation(individual *ind, int individualID, int requestID);
+void sortPopulation(individual *population, int size);
+void swapIndividuals(individual *population, int a, int b);
+void runGenerations(int maxGeneration,
+                    individual *originalPopulation,
+                    individual *newPopulation,
+                    double *quality1_values, double *quality2_values);
 //======================================================================
