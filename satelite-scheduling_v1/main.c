@@ -62,7 +62,7 @@ int main(int argc, char * argv[]){
     calculateSignalQualityValues(quality1_values, window1_size);
     calculateSignalQualityValues(quality2_values, window2_size);
 
-    if(PRINTING_FLAG){
+    if(1){
         puts("Quality1");
         printDoubleArray(quality1_values, window1_size);
 

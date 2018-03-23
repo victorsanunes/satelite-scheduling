@@ -24,7 +24,7 @@ void printIntArray(int *array, int size){
 void printDoubleArray(double *array, int size){
     int i;
     for (i = 0; i < size; i++){
-        printf("%d: %.2f| \n",i+1, array[i]);
+        printf("%d: %.4f| \n",i+1, array[i]);
         }
     printf("\n");
 }
