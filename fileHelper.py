@@ -8,6 +8,7 @@ def readFile(filename):
     dataset = list()
     with open(filename) as tsv:
         for line in csv.reader(tsv, dialect="excel-tab"):
-            dataset.append(line)
+            if len(line) > 0:
+                dataset.append(line)
 
     return dataset

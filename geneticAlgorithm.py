@@ -1,5 +1,6 @@
 import globals
 import fileHelper as fh
+import heapsort
 
 class GeneticAlgorithm(object):
     def truncateValue(self, numerador, denominador):
@@ -129,7 +130,6 @@ class GeneticAlgorithm(object):
         self.quality1 = self.calculateQualityValues(30)
         self.quality2 = self.calculateQualityValues(31)
 
-
 class Individual(object):
     def __init__(self, requests, indID):
         self.features = {x: dict() for x in range(requests)}
@@ -253,21 +253,26 @@ class Population(object):
             ind.calculateFitnessValue()
 
     def sortPopulationByFitness(self):
-        @TODO: validar a correcao dos indices apos a ordenacao
+        # @TODO: validar a correcao dos indices apos a ordenacao
 
+        # Dicionario auxiliar para armazenar o id do individuo e seu fitness
         fitnessArray = dict()
         for k in self.population:
             ind = self.getIndividual(k)
             fitnessArray[ind.getIndividualID()] = ind.getFitnessValue()
 
+        # Vetor com os valores de fitness para cada individuo
         valueArray = list(fitnessArray.values())
+
+        # Vetor com os ID de cada individuo
         keyArray = list(fitnessArray.keys())
+        #Ordena a populacao baseado no valor de fitness
+        heapsort.heapSort(valueArray, keyArray)
 
         for i in range(len(valueArray)):
             ind = self.getIndividual(i)
             ind.setFitnessValue(valueArray[i])
             ind.setID(keyArray[i])
-
 
 # if __name__ == "__main__":
 #     GA = GeneticAlgorithm()
