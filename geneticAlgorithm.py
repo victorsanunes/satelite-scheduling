@@ -1,6 +1,7 @@
 import globals
 import fileHelper as fh
 import heapsort
+import random
 
 class GeneticAlgorithm(object):
     def truncateValue(self, numerador, denominador):
@@ -126,9 +127,94 @@ class GeneticAlgorithm(object):
     def getQualityArray(self):
         return [self.quality1, self.quality2]
 
-    def __init__(self):
+    def crossover(self, selected1, selected2, replace1, replace2):
+        cut_point = 2
+        for req in range(cut_point):
+            replace1.setRequest(reqID = req,
+                                window=selected1.getWindow(req),
+                                kline=selected1.getKline(req),
+                                reqBegin=selected1.getReqBegin(req),
+                                reqEnd=selected1.getReqEnd(req),
+                                station=selected1.getStation(req),
+                                windowBegin=selected1.getWindowBegin(req),
+                                windowEnd=selected1.getWindowEnd(req))
+
+            replace2.setRequest(reqID = req,
+                                window=selected2.getWindow(req),
+                                kline=selected2.getKline(req),
+                                reqBegin=selected2.getReqBegin(req),
+                                reqEnd=selected2.getReqEnd(req),
+                                station=selected2.getStation(req),
+                                windowBegin=selected2.getWindowBegin(req),
+                                windowEnd=selected2.getWindowEnd(req))
+
+        for req in range(cut_point, globals.REQUESTS):
+            replace1.setRequest(reqID = req,
+                                window=selected2.getWindow(req),
+                                kline=selected2.getKline(req),
+                                reqBegin=selected2.getReqBegin(req),
+                                reqEnd=selected2.getReqEnd(req),
+                                station=selected2.getStation(req),
+                                windowBegin=selected2.getWindowBegin(req),
+                                windowEnd=selected2.getWindowEnd(req))
+
+            replace2.setRequest(reqID = req,
+                                window=selected1.getWindow(req),
+                                kline=selected1.getKline(req),
+                                reqBegin=selected1.getReqBegin(req),
+                                reqEnd=selected1.getReqEnd(req),
+                                station=selected1.getStation(req),
+                                windowBegin=selected1.getWindowBegin(req),
+                                windowEnd=selected1.getWindowEnd(req))
+
+    def mutation(self, selected1, replace1):
+        req_selected = random.randint(0, globals.REQUESTS-1)
+        option =  random.randint(0, 1)
+
+        # Copia o individuo original
+        for req in range(globals.REQUESTS):
+            replace1.setRequest(reqID = req,
+                                window=selected1.getWindow(req),
+                                kline=selected1.getKline(req),
+                                reqBegin=selected1.getReqBegin(req),
+                                reqEnd=selected1.getReqEnd(req),
+                                station=selected1.getStation(req),
+                                windowBegin=selected1.getWindowBegin(req),
+                                windowEnd=selected1.getWindowEnd(req))
+
+        if(option == 1):
+            replace1.setKline(req_selected, replace1.getKline(req_selected)+1)
+            replace1.setReqBegin(req_selected, replace1.getReqBeginreq(req_selected)+1)
+            replace1.setReqEnd(req_selected, replace1.getReqEnd(req_selected)+1)
+
+        else:
+            replace1.setKline(req_selected, replace1.getKline(req_selected)-1)
+            replace1.setReqBegin(req_selected, replace1.getReqBegin(req_selected)-1)
+            replace1.setReqEnd(req_selected, replace1.getReqEnd(req_selected)-1)
+
+    def buildRoulette(self, fitnessValues):
+        sum_fit = float(sum(fitnessValues))
+
+        roulette = dict()
+        for i in range(globals.MAX_INDIVIDUALS):
+            roulette[i] = 100 * fitnessValues[i]/sum_fit
+        return roulette
+
+    def rouletteWheelSelection(self, roulette):
+        probabilityValue = random.randint(0, 10000) / 100.0
+        sum_probability = roulette[0]
+        selected = 0
+
+        while sum_probability < probabilityValue:
+            selected += 1
+            sum_probability += roulette[i]
+
+        return selected
+
+    def __init__(self, crossoverRate):
         self.quality1 = self.calculateQualityValues(30)
         self.quality2 = self.calculateQualityValues(31)
+        self.crossoverRate = crossoverRate
 
 class Individual(object):
     def __init__(self, requests, indID):
@@ -138,7 +224,7 @@ class Individual(object):
 
     # ----------------------------- CALCULATIONS -------------------------------
     def calculateFitnessValue(self):
-        ga = GeneticAlgorithm()
+        ga = GeneticAlgorithm(globals.CROSSOVER_RATE)
         self.setFitnessValue(ga.calculateFitnessValues(self, ga.quality1, ga.quality2))
 
     # ------------------------------ PRINTERS ---------------------------------
@@ -230,6 +316,9 @@ class Population(object):
     def __init__(self):
         self.population = {x: Individual(globals.REQUESTS, x) for x in range(globals.MAX_INDIVIDUALS)}
         self.sortedPopulationIndexes = list(self.population.keys())
+        self.GA = GeneticAlgorithm(globals.CROSSOVER_RATE)
+        self.fitnessArray = None
+        self.roulette = None
 
     def printPopulation(self):
         for k in self.sortedPopulationIndexes:
@@ -253,8 +342,6 @@ class Population(object):
             ind.calculateFitnessValue()
 
     def sortPopulationByFitness(self):
-        # @TODO: validar a correcao dos indices apos a ordenacao
-
         # Dicionario auxiliar para armazenar o id do individuo e seu fitness
         fitnessArray = dict()
         for k in self.population:
@@ -266,13 +353,65 @@ class Population(object):
 
         # Vetor com os ID de cada individuo
         keyArray = list(fitnessArray.keys())
+
         #Ordena a populacao baseado no valor de fitness
         heapsort.heapSort(valueArray, keyArray)
 
-        for i in range(len(valueArray)):
-            ind = self.getIndividual(i)
-            ind.setFitnessValue(valueArray[i])
-            ind.setID(keyArray[i])
+        self.sortedPopulationIndexes = keyArray
+        self.fitnessArray = valueArray
+
+        # for i in range(len(valueArray)):
+        #     ind = self.getIndividual(i)
+        #     ind.setFitnessValue(valueArray[i])
+        #     ind.setID(keyArray[i])
+
+    def runCrossover(self, id_selected1, id_selected2, id_replace1, id_replace2):
+        selected1 = self.getIndividual(id_selected1)
+        selected2 = self.getIndividual(id_selected2)
+        replace1 = self.getIndividual(id_replace1)
+        replace2 = self.getIndividual(id_replace2)
+        self.GA.crossover(selected1, selected2, replace1, replace2)
+
+    def runMutation(self):
+        selected1 = self.getIndividual(0)
+        replace1 = self.getIndividual(1)
+
+        self.GA.mutation(selected1, replace1)
+
+    def runRoulette(self):
+        self.roulette = self.GA.buildRoulette(self.fitnessArray)
+        print("Roulette")
+        print(self.roulette)
+
+    def runWheelSelection(self):
+        self.runRoulette()
+        selected = self.GA.rouletteWheelSelection(self.roulette)
+        return selected
+
+    def reproduction(self):
+        @TODO: Terminar de escrever os codigos da reproducao
+        new_ind = 0
+        while new_ind < range(globals.NEW_INDIVIDUALS):
+            probabilityValue = random.randint(0, 1000) % 101
+
+            if(probabilityValue <= self.GA.crossoverRate):
+                # So pode gerar mais um individuo
+                if(new_ind == globals.NEW_INDIVIDUALS - 1):
+                    new_ind += 1
+                    selected1 = selected2 = self.runWheelSelection()
+                else:
+                    new_ind += 2
+                    selected1 = self.runWheelSelection()
+                    selected2 = self.runWheelSelection()
+
+                self.runCrossover(selected1, selected2, keyArray[0], keyArray[1])
+
+            else:
+                pass
+
+    def runGenerations(self):
+        for i in range(globals.MAX_GENERATION):
+            pass
 
 # if __name__ == "__main__":
 #     GA = GeneticAlgorithm()

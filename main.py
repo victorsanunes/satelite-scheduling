@@ -1,10 +1,11 @@
 import fileHelper as fh
 import globals
 import geneticAlgorithm as GA
+import random
 
 def loadDataset():
     dataset = fh.readFile(globals.INPUT_FILE)
-    ga = GA.GeneticAlgorithm()
+    ga = GA.GeneticAlgorithm(globals.CROSSOVER_RATE)
     # individuo = GA.Individual(4, 0)
     # ind.printIndividual()
     population = GA.Population()
@@ -49,16 +50,13 @@ def loadDataset():
     return population
 
 def main():
+    random.seed(1)
     population = loadDataset()
-    # population.printPopulation()
 
     population.calculatePopulationFitness()
-    population.printPopulationFitness()
     population.sortPopulationByFitness()
-    print("\n\nAfter sorting")
-    population.printPopulationFitness()
     # population.printPopulation()
-
+    population.reproduction()
     # ind = population.getIndividual(10)
     # ind.setFitnessValue()
     # ind.printIndividual()

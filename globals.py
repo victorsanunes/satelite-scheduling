@@ -9,7 +9,7 @@ WINDOW_BEGINNING = 5
 WINDOW_ENDING = 6
 
 # Quantidade maxima de individuos iniciais
-MAX_INDIVIDUALS = 3
+MAX_INDIVIDUALS = 4
 
 # Numero de solicitacoes
 REQUESTS = 4
@@ -41,6 +41,8 @@ CROSSOVER_RATE = 10.00
 # INPUT_FILE "POPULACAO_INICIAL.txt"
 # INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
 # INPUT_FILE "SUPER_POPULACAO.txt"
+
 INPUT_FILE = "POPULACAO2.txt"
+# INPUT_FILE = "teste_crossover.txt"
 
 PRINTING_FLAG = 0
