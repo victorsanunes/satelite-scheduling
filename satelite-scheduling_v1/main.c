@@ -48,7 +48,7 @@ int main(int argc, char * argv[]){
     double sum;
     double sum_aux = 0.0;
     individualSummary *individuals = malloc(MAX_INDIVIDUALS * sizeof(individualSummary));
-    FILE *f = fopen("resultados/10000_GERACOES/crossover_10_3.txt", "w");
+    FILE *f = fopen("resultados/10000_GERACOES/crossover_10_teste.txt", "w");
     f_fit = fopen("values_10.txt", "w");
     f_csv = fopen("fitness_csv.csv", "w");
 

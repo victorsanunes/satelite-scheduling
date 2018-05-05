@@ -9,7 +9,7 @@ WINDOW_BEGINNING = 5
 WINDOW_ENDING = 6
 
 # Quantidade maxima de individuos iniciais
-MAX_INDIVIDUALS = 4
+MAX_INDIVIDUALS = 20
 
 # Numero de solicitacoes
 REQUESTS = 4
@@ -30,7 +30,7 @@ WINDOW_SIZE = 5
 HORIZON_SIZE = 50
 
  # Numero de geracoes maximas
-MAX_GENERATION = 10000
+MAX_GENERATION = 100
 
 # Numero de individuos gerados a cada geracao
 NEW_INDIVIDUALS = 5
@@ -42,7 +42,7 @@ CROSSOVER_RATE = 10.00
 # INPUT_FILE "TESTE_DA_FUNCAO_OBJETIVO.txt"
 # INPUT_FILE "SUPER_POPULACAO.txt"
 
-INPUT_FILE = "POPULACAO2.txt"
+INPUT_FILE = "POPULACAO3.txt"
 # INPUT_FILE = "teste_crossover.txt"
 
 PRINTING_FLAG = 0

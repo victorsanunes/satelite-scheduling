@@ -128,6 +128,15 @@ class GeneticAlgorithm(object):
         return [self.quality1, self.quality2]
 
     def crossover(self, selected1, selected2, replace1, replace2):
+        '''
+        Implementacao do crossover basico
+
+        Ele ja atualiza os novos individuos gerados na populacao,
+        matando os individuos com menor fitness
+
+        selected1: individuo que foi selecionado
+        replace1: individuo para ser substituido
+        '''
         cut_point = 2
         for req in range(cut_point):
             replace1.setRequest(reqID = req,
@@ -184,7 +193,7 @@ class GeneticAlgorithm(object):
 
         if(option == 1):
             replace1.setKline(req_selected, replace1.getKline(req_selected)+1)
-            replace1.setReqBegin(req_selected, replace1.getReqBeginreq(req_selected)+1)
+            replace1.setReqBegin(req_selected, replace1.getReqBegin(req_selected)+1)
             replace1.setReqEnd(req_selected, replace1.getReqEnd(req_selected)+1)
 
         else:
@@ -197,18 +206,26 @@ class GeneticAlgorithm(object):
 
         roulette = dict()
         for i in range(globals.MAX_INDIVIDUALS):
-            roulette[i] = 100 * fitnessValues[i]/sum_fit
+            if(sum_fit > 0):
+                roulette[i] = 100 * fitnessValues[i]/sum_fit
+            else:
+                roulette[i] = 0.0
         return roulette
 
     def rouletteWheelSelection(self, roulette):
+        '''
+        Funcao que implementa a selecao por roleta
+
+        Retorna o ID do individuo selecionado
+        '''
         probabilityValue = random.randint(0, 10000) / 100.0
         sum_probability = roulette[0]
         selected = 0
 
-        while sum_probability < probabilityValue:
+        while sum_probability < probabilityValue \
+                and selected < globals.MAX_INDIVIDUALS-1:
             selected += 1
-            sum_probability += roulette[i]
-
+            sum_probability += roulette[selected]
         return selected
 
     def __init__(self, crossoverRate):
@@ -320,6 +337,16 @@ class Population(object):
         self.fitnessArray = None
         self.roulette = None
 
+    def savePopulationFitnessToFile(self):
+        array = [0.0 for x in range(globals.MAX_INDIVIDUALS)]
+        for k in self.sortedPopulationIndexes:
+            array[k] = float(self.fitnessArray[k])
+
+        with open("fitness.csv", 'a') as file_handler:
+            for item in array:
+                file_handler.write(str(item) + ',' )
+            file_handler.write('\n')
+
     def printPopulation(self):
         for k in self.sortedPopulationIndexes:
             print("Individuo: " + str(k))
@@ -372,16 +399,16 @@ class Population(object):
         replace2 = self.getIndividual(id_replace2)
         self.GA.crossover(selected1, selected2, replace1, replace2)
 
-    def runMutation(self):
-        selected1 = self.getIndividual(0)
-        replace1 = self.getIndividual(1)
+    def runMutation(self, id_selected1, id_replace1):
+        selected1 = self.getIndividual(id_selected1)
+        replace1 = self.getIndividual(id_replace1)
 
         self.GA.mutation(selected1, replace1)
 
     def runRoulette(self):
         self.roulette = self.GA.buildRoulette(self.fitnessArray)
-        print("Roulette")
-        print(self.roulette)
+        # print("Roulette")
+        # print(self.roulette)
 
     def runWheelSelection(self):
         self.runRoulette()
@@ -389,29 +416,54 @@ class Population(object):
         return selected
 
     def reproduction(self):
-        @TODO: Terminar de escrever os codigos da reproducao
         new_ind = 0
-        while new_ind < range(globals.NEW_INDIVIDUALS):
+        idx = 0
+        while new_ind < globals.NEW_INDIVIDUALS:
             probabilityValue = random.randint(0, 1000) % 101
 
+            # Escolheu crossover
             if(probabilityValue <= self.GA.crossoverRate):
                 # So pode gerar mais um individuo
                 if(new_ind == globals.NEW_INDIVIDUALS - 1):
                     new_ind += 1
-                    selected1 = selected2 = self.runWheelSelection()
+                    selected1 = self.runWheelSelection()
+                    selected2 = selected1
+                    # self.runCrossover(selected1, selected1,
+                    #                     self.sortedPopulationIndexes[new_ind-1],
+                    #                     self.sortedPopulationIndexes[new_ind-1])
                 else:
                     new_ind += 2
                     selected1 = self.runWheelSelection()
                     selected2 = self.runWheelSelection()
+                    # print("Dois selecionados")
+                    # self.getIndividual(selected1).printIndividual()
+                    # self.getIndividual(selected2).printIndividual()
+                    self.runCrossover(selected1, selected2,
+                                        self.sortedPopulationIndexes[idx],
+                                        self.sortedPopulationIndexes[idx+1])
+                    idx += 2
 
-                self.runCrossover(selected1, selected2, keyArray[0], keyArray[1])
-
+            # Escolheu a mutacao
             else:
-                pass
+                new_ind += 1
+                selected1 = self.runWheelSelection()
+                self.runMutation(selected1, self.sortedPopulationIndexes[idx])
+                idx += 1
 
     def runGenerations(self):
+        # print("Calculando fitness...")
+        self.calculatePopulationFitness()
+        # print("Ordenando pelo fitness...")
+        self.sortPopulationByFitness()
+        # self.savePopulationFitnessToFile()
         for i in range(globals.MAX_GENERATION):
-            pass
+            self.runRoulette()
+            self.reproduction()
+            self.calculatePopulationFitness()
+            self.sortPopulationByFitness()
+            # self.savePopulationFitnessToFile()
+            # print("========================================= Generation " + str(i) + " -======================================")
+            # self.printPopulation()
 
 # if __name__ == "__main__":
 #     GA = GeneticAlgorithm()

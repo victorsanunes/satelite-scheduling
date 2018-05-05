@@ -53,13 +53,15 @@ def main():
     random.seed(1)
     population = loadDataset()
 
-    population.calculatePopulationFitness()
-    population.sortPopulationByFitness()
+    # print("======================= Original population =======================")
     # population.printPopulation()
-    population.reproduction()
-    # ind = population.getIndividual(10)
-    # ind.setFitnessValue()
-    # ind.printIndividual()
+    population.printPopulationFitness()
+
+    population.runGenerations()
+    # print("\n\n\n\n======================= Final population =======================")
+    # population.printPopulation()
+    population.printPopulationFitness()
+
 
 
 main()
