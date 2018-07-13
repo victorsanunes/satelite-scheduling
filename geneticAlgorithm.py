@@ -2,6 +2,10 @@ import globals
 import fileHelper as fh
 import heapsort
 import random
+import math
+
+MANUAL = 1 # Flag para determinar se os pesos sao gerados manualmente ou de forma aleatoria
+SAVE = 1 # Flag para salvar o valor do melhor individuo a cada geracao
 
 class GeneticAlgorithm(object):
     def truncateValue(self, numerador, denominador):
@@ -24,8 +28,9 @@ class GeneticAlgorithm(object):
         return quality
 
     def fitnessFunction(self, ind, id_req):
-        weight = 1.0
         value = 0.0
+        weight = ind.getWeight(id_req)
+        # weight = 1.0
 
         if(ind.getReqBegin(id_req) < ind.getWindowBegin(id_req) or
             ind.getReqEnd(id_req) > ind.getWindowEnd(id_req) or
@@ -33,6 +38,7 @@ class GeneticAlgorithm(object):
             weight = 0.0
             value = 0.0
         elif(ind.getWindow(id_req) == 1):
+            # value += weight * self.quality1[ind.getKline(id_req)-1]
             value += weight * self.quality1[ind.getKline(id_req)-1]
 
         elif(ind.getWindow(id_req) == 2):
@@ -127,6 +133,68 @@ class GeneticAlgorithm(object):
     def getQualityArray(self):
         return [self.quality1, self.quality2]
 
+    def crossoverBlend(self, selected1, selected2, replace1, replace2):
+        b = random.uniform(0, 1)
+        cut_point = 2
+
+        for req in range(cut_point):
+            offspring = b * ( selected1.getKline(req) - selected2.getKline(req) )
+
+            kline1 = math.ceil(selected1.getKline(req) - offspring)
+            reqBegin1 = math.ceil(selected1.getReqBegin(req) - offspring)
+            reqEnd1 = math.ceil(selected1.getReqEnd(req) - offspring)
+
+            kline2 = math.ceil(selected2.getKline(req) + offspring)
+            reqBegin2 = math.ceil(selected2.getReqBegin(req) + offspring)
+            reqEnd2 = math.ceil(selected2.getReqEnd(req) + offspring)
+
+            replace1.setRequest(reqID = req,
+                                window=selected1.getWindow(req),
+                                kline=kline1,
+                                reqBegin=reqBegin1,
+                                reqEnd=reqEnd1,
+                                station=selected1.getStation(req),
+                                windowBegin=selected1.getWindowBegin(req),
+                                windowEnd=selected1.getWindowEnd(req))
+
+            replace2.setRequest(reqID = req,
+                                window=selected2.getWindow(req),
+                                kline=kline2,
+                                reqBegin=reqBegin2,
+                                reqEnd=reqEnd2,
+                                station=selected2.getStation(req),
+                                windowBegin=selected2.getWindowBegin(req),
+                                windowEnd=selected2.getWindowEnd(req))
+
+        for req in range(cut_point, globals.REQUESTS):
+            #offspring = b * ( selected1.getKline(req)- selected2.getKline(req) )
+
+            kline1 = math.ceil(selected1.getKline(req) - offspring)
+            reqBegin1 = math.ceil(selected1.getReqBegin(req) - offspring)
+            reqEnd1 = math.ceil(selected1.getReqEnd(req) - offspring)
+
+            kline2 = math.ceil(selected2.getKline(req) + offspring)
+            reqBegin2 = math.ceil(selected2.getReqBegin(req) + offspring)
+            reqEnd2 = math.ceil(selected2.getReqEnd(req) + offspring)
+
+            replace2.setRequest(reqID = req,
+                                window=selected1.getWindow(req),
+                                kline=kline1,
+                                reqBegin=reqBegin1,
+                                reqEnd=reqBegin1,
+                                station=selected1.getStation(req),
+                                windowBegin=selected1.getWindowBegin(req),
+                                windowEnd=selected1.getWindowEnd(req))
+
+            replace1.setRequest(reqID = req,
+                                window=selected2.getWindow(req),
+                                kline=kline2,
+                                reqBegin=reqBegin2,
+                                reqEnd=reqEnd2,
+                                station=selected2.getStation(req),
+                                windowBegin=selected2.getWindowBegin(req),
+                                windowEnd=selected2.getWindowEnd(req))
+
     def crossover(self, selected1, selected2, replace1, replace2):
         '''
         Implementacao do crossover basico
@@ -203,13 +271,13 @@ class GeneticAlgorithm(object):
 
     def buildRoulette(self, fitnessValues):
         sum_fit = float(sum(fitnessValues))
-
-        roulette = dict()
-        for i in range(globals.MAX_INDIVIDUALS):
-            if(sum_fit > 0):
+        if(sum_fit == 0):
+            roulette = {x: 0.0 for x in range(globals.MAX_INDIVIDUALS)}
+        else:
+            roulette = dict()
+            for i in range(globals.MAX_INDIVIDUALS):
                 roulette[i] = 100 * fitnessValues[i]/sum_fit
-            else:
-                roulette[i] = 0.0
+
         return roulette
 
     def rouletteWheelSelection(self, roulette):
@@ -299,6 +367,18 @@ class Individual(object):
     def setID(self, value):
         self.indID = value
 
+    def setWeight(self, reqID):
+        if(MANUAL):
+            if(reqID == 1):
+                self.features[reqID]["weight"] = 1.0
+            elif reqID == 2:
+                self.features[reqID]["weight"] = 0.1
+            elif reqID == 3:
+                self.features[reqID]["weight"] = 0.5
+            else:
+                self.features[reqID]["weight"] = 1.0
+        else:
+            self.features[reqID]["weight"] = random.uniform(0, 1)
     # ---------------------- GETTERS --------------------------------
     def getWindow(self, reqID):
         return self.features[reqID]["window"]
@@ -327,6 +407,9 @@ class Individual(object):
     def getFitnessValue(self):
         return self.fitness
 
+    def getWeight(self, reqID):
+        return self.features[reqID]["weight"]
+
 class Population(object):
     # def fillPopulation(self, dataset):
 
@@ -334,18 +417,47 @@ class Population(object):
         self.population = {x: Individual(globals.REQUESTS, x) for x in range(globals.MAX_INDIVIDUALS)}
         self.sortedPopulationIndexes = list(self.population.keys())
         self.GA = GeneticAlgorithm(globals.CROSSOVER_RATE)
-        self.fitnessArray = None
+        self.fitnessArray = [0.0 for i in range(globals.MAX_INDIVIDUALS)]
         self.roulette = None
 
     def savePopulationFitnessToFile(self):
-        array = [0.0 for x in range(globals.MAX_INDIVIDUALS)]
-        for k in self.sortedPopulationIndexes:
-            array[k] = float(self.fitnessArray[k])
+        if(SAVE):
+            array = [0.0 for x in range(globals.MAX_INDIVIDUALS)]
+            for k in self.sortedPopulationIndexes:
+                array[k] = float(self.fitnessArray[k])
 
-        with open("fitness.csv", 'a') as file_handler:
-            for item in array:
-                file_handler.write(str(item) + ',' )
-            file_handler.write('\n')
+            with open("fitness.csv", 'a') as file_handler:
+                for item in array:
+                    file_handler.write(str(item) + ',' )
+                file_handler.write('\n')
+
+            with open("best_fitness.csv", "a") as file_handler:
+                file_handler.write(str(max(array)) + "\n")
+        else:
+            pass
+
+    def writeLine(self, ind, function, file_handler):
+        for req in range(globals.REQUESTS):
+            if(req == globals.REQUESTS-1):
+                file_handler.write(str(function(req)) + "")
+            else:
+                file_handler.write(str(function(req)) + "	")
+        file_handler.write("\n")
+
+    def savePopulationToFile(self):
+        with open("final_population.txt", "w") as file_handler:
+            for indID in self.population:
+                ind = self.getIndividual(indID)
+                self.writeLine(ind = ind, function=ind.getWindow, file_handler = file_handler)
+                self.writeLine(ind = ind, function=ind.getKline, file_handler = file_handler)
+                self.writeLine(ind = ind, function=ind.getReqBegin, file_handler = file_handler)
+                self.writeLine(ind = ind, function=ind.getReqEnd, file_handler = file_handler)
+                self.writeLine(ind = ind, function=ind.getStation, file_handler = file_handler)
+                self.writeLine(ind = ind, function=ind.getWindowBegin, file_handler = file_handler)
+                self.writeLine(ind = ind, function=ind.getWindowEnd, file_handler = file_handler)
+                file_handler.write("\n")
+                # for req in globals.REQUESTS:
+                #     file_handler.write(str(ind.get))
 
     def printPopulation(self):
         for k in self.sortedPopulationIndexes:
@@ -397,7 +509,7 @@ class Population(object):
         selected2 = self.getIndividual(id_selected2)
         replace1 = self.getIndividual(id_replace1)
         replace2 = self.getIndividual(id_replace2)
-        self.GA.crossover(selected1, selected2, replace1, replace2)
+        self.GA.crossoverBlend(selected1, selected2, replace1, replace2)
 
     def runMutation(self, id_selected1, id_replace1):
         selected1 = self.getIndividual(id_selected1)
@@ -406,7 +518,11 @@ class Population(object):
         self.GA.mutation(selected1, replace1)
 
     def runRoulette(self):
+        # print("fitnessArray")
+        # print(self.fitnessArray)
         self.roulette = self.GA.buildRoulette(self.fitnessArray)
+        # if(sum(self.roulette.values()) > 0.0):
+        #     print("Maior ")
         # print("Roulette")
         # print(self.roulette)
 
@@ -455,15 +571,18 @@ class Population(object):
         self.calculatePopulationFitness()
         # print("Ordenando pelo fitness...")
         self.sortPopulationByFitness()
-        # self.savePopulationFitnessToFile()
+        self.printPopulationFitness()
+        self.savePopulationFitnessToFile()
         for i in range(globals.MAX_GENERATION):
             self.runRoulette()
             self.reproduction()
             self.calculatePopulationFitness()
             self.sortPopulationByFitness()
-            # self.savePopulationFitnessToFile()
+            self.savePopulationFitnessToFile()
             # print("========================================= Generation " + str(i) + " -======================================")
             # self.printPopulation()
+        print("\n\n---------------New fitness-----------------")
+        self.printPopulationFitness()
 
 # if __name__ == "__main__":
 #     GA = GeneticAlgorithm()

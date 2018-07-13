@@ -214,6 +214,9 @@ void fillRoulette(double *roulette, double *fitnessValues, int length){
     for(i = 0; i < length; i++){
         roulette[i] = 100.0 * fitnessValues[i]/sumFitnessValues;
     }
+    puts("Roleta");
+printDoubleArray(roulette,length);
+puts("");
 }
 
 int rouletteWheelSelection(double *roulette, int length, individualSummary *individuals){

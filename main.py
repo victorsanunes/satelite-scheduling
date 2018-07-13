@@ -22,7 +22,7 @@ def loadDataset():
             if i == globals.WINDOW:
                 for j in range(len(dataset[0])):
                     population.getIndividual(ind).setWindow(j, dataset[i+jump][j])
-
+                    population.getIndividual(ind).setWeight(j)
             elif i == globals.KLINE:
                 for j in range(len(dataset[i])):
                     population.getIndividual(ind).setKline(j, dataset[i+jump][j])
@@ -54,14 +54,8 @@ def main():
     population = loadDataset()
 
     # print("======================= Original population =======================")
-    # population.printPopulation()
-    population.printPopulationFitness()
-
     population.runGenerations()
-    # print("\n\n\n\n======================= Final population =======================")
     # population.printPopulation()
-    population.printPopulationFitness()
-
-
+    population.savePopulationToFile()
 
 main()

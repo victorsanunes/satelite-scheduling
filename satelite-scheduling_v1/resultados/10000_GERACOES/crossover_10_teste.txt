@@ -370,7 +370,7 @@ individuo[19]=2.94
 CROSSOVER: 4641
 MUTACAO: 41610
 Primeiro otimo: 54
-Tempo: 0.05
+Tempo: 0.61
 
 ======== DADOS DO ALGORITMO ==========
 CROSSOVER_RATE: 10.00

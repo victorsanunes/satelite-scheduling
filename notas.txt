@@ -1,0 +1,8 @@
+Caracteristica da populacao quando ocorre um salto na aptidao
+
+Usar a populacao final como entrada do problema reduzindo o numero de geracoes
+
+qual a correlação entre a variacao na taxa de crossover e o tempo que leva para a aptidao fazer um salto. 
+
+
+
